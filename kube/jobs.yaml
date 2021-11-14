@@ -1,0 +1,17 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: ${project-name}-${job-name}-job
+spec:
+  schedule: "0 */1 * * *"
+  concurrencyPolicy: Replace
+  successfulJobsHistoryLimit: 0
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: example-job
+              image: ${ecr-repo-url}/${project-name}:${tag}
+          restartPolicy: OnFailure

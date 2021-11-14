@@ -1,0 +1,13 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+    name: project-name
+    region: eu-west-2
+
+managedNodeGroups:
+    - name: ng-1
+      instanceType: t3.small
+      desiredCapacity: 1
+      minSize: 1
+      maxSize: 10

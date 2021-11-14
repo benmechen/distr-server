@@ -1,0 +1,16 @@
+{
+	"apps": [
+		{
+			"name": "football-exchange-api",
+			"cwd": "/home/ubuntu/football-exchange-backend/",
+			"script": "npm",
+			"args": "run start:prod",
+			"instances": "max",
+			"exec_mode": "cluster",
+			"time": true,
+			"env": {
+				"NODE_ENV": "production"
+			}
+		}
+	]
+}
