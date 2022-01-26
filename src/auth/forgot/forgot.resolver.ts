@@ -3,9 +3,7 @@ import { Resolver } from '@nestjs/graphql';
 
 @Resolver()
 export class ForgotResolver {
-	constructor() // private configService: ConfigService, // private authService: AuthService, // private userService: UserService, // private codeService: CodeService,
-	// private notificationService: NotificationService,
-	{}
+	constructor() {} // private notificationService: NotificationService, // private configService: ConfigService, // private authService: AuthService, // private userService: UserService, // private codeService: CodeService,
 
 	// @Mutation(() => Tokens)
 	// async resetPassword(
