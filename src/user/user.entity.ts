@@ -56,19 +56,19 @@ export class User extends Node implements IUser {
 	})
 	issuedTokens: Token[];
 
-	@Field({
+	@Field(() => Boolean, {
 		description: 'Is the account locked',
 	})
-	@Property()
+	@Property({ type: 'boolean' })
 	locked = false;
 
-	@Field({
+	@Field(() => Boolean, {
 		description: 'Is the account activated',
 	})
-	@Property()
+	@Property({ type: 'boolean' })
 	active = false;
 
-	@Property()
+	@Property({ type: 'number' })
 	loginAttempts = 0;
 
 	@Field(() => Date, {

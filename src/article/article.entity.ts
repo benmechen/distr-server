@@ -10,8 +10,8 @@ export class Article extends Node {
 	@Property()
 	title: string;
 
-	@Field({ description: 'Article title' })
-	@Property()
+	@Field(() => String, { description: 'Article title' })
+	@Property({ type: 'string' })
 	publisher = 'distr';
 
 	@Field({ description: "URL of article's header image", nullable: true })
