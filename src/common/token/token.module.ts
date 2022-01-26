@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { TokenService } from './token.service';
 import { AWSHelperService } from './aws.service';
 import { Token } from './token.entity';
@@ -25,7 +25,7 @@ export const AWSSecretFactory = {
 };
 
 @Module({
-	imports: [JwtModule.register({}), TypeOrmModule.forFeature([Token])],
+	imports: [JwtModule.register({}), MikroOrmModule.forFeature([Token])],
 	providers: [TokenService, AWSHelperService, AWSSecretFactory],
 	exports: [TokenService],
 })

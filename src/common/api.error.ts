@@ -82,6 +82,10 @@ export enum APIErrorCode {
 	 * The given token was not of the correct type
 	 */
 	INVALID_TOKEN_TYPE = 'You did not provide a resource token',
+	/**
+	 * The given phone number was not a valid UK phone number
+	 */
+	INVALID_PHONE = 'That is not a value phone number. Numbers must be in the form +447#########',
 }
 
 /**

@@ -1,15 +1,13 @@
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Entity, ManyToOne, Property } from '@mikro-orm/core';
 import { User } from '../../user/user.entity';
 import { Node } from '../base/base.entity';
 
-@Entity('tokens')
+@Entity()
 export class Token extends Node {
-	@Column()
+	@Property()
 	token: string;
 
-	@ManyToOne(() => User, (user) => user.issuedTokens, {
-		onDelete: 'CASCADE',
-	})
+	@ManyToOne(() => User)
 	user: User;
 }
 

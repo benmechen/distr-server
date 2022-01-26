@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { GraphQLModule } from '@nestjs/graphql';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -12,7 +12,7 @@ import { apolloConfig } from './apollo.config';
 import { StatusController } from './status/status.controller';
 import { AuthModule } from './auth/auth.module';
 import { ArticleModule } from './article/article.module';
-import { dbConfig } from './db.config';
+import { DBConfig } from './db.config';
 import { GlobalModule } from './global.module';
 import { CommonModule } from './common/common.module';
 import { NotificationConfig } from './notification/notification.config';
@@ -37,17 +37,21 @@ import { WinstonConfig } from './winston.config';
 			inject: [ConfigService],
 		}),
 		// Main DB
-		TypeOrmModule.forRootAsync({
-			imports: [ConfigModule],
-			useFactory: (configService: ConfigService) =>
-				dbConfig(configService, {
-					dbNameKey: 'DB_NAME',
-					name: 'default',
-					synchronize: true,
-					cache: true,
-				}),
+		MikroOrmModule.forRootAsync({
 			inject: [ConfigService],
+			useClass: DBConfig,
 		}),
+		// TypeOrmModule.forRootAsync({
+		// 	imports: [ConfigModule],
+		// 	useFactory: (configService: ConfigService) =>
+		// 		dbConfig(configService, {
+		// 			dbNameKey: 'DB_NAME',
+		// 			name: 'default',
+		// 			synchronize: true,
+		// 			cache: true,
+		// 		}),
+		// 	inject: [ConfigService],
+		// }),
 		BullModule.forRootAsync({
 			useFactory: (configService: ConfigService) => ({
 				redis: {

@@ -58,14 +58,6 @@ export class UserUpdateResolver {
 		)
 			throw new APIError(APIErrorCode.USER_EXISTS_EMAIL);
 
-		// Make sure no user already exists with the given phone
-		if (
-			input.phone &&
-			input.phone !== user.phone &&
-			(await this.userService.isPhoneRegistered(input.phone))
-		)
-			throw new APIError(APIErrorCode.USER_EXISTS_PHONE);
-
 		return this.userService.update(user, input);
 	}
 

@@ -1,29 +1,22 @@
+import { PrimaryKey, Property } from '@mikro-orm/core';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
-import {
-	CreateDateColumn,
-	DeleteDateColumn,
-	PrimaryGeneratedColumn,
-	UpdateDateColumn,
-} from 'typeorm';
+import { v4 } from 'uuid';
 
 @ObjectType({
 	description: 'An object with an ID to support global identification',
 })
 export abstract class Node {
 	@Field(() => ID, { description: 'Globally unique identifier' })
-	@PrimaryGeneratedColumn('uuid')
-	id: string;
+	@PrimaryKey()
+	id: string = v4();
 
 	@Field(() => Date, { description: 'Date the object was created' })
-	@CreateDateColumn()
+	@Property()
 	created: Date = new Date();
 
 	@Field(() => Date, { description: 'Date the object was last updated' })
-	@UpdateDateColumn()
+	@Property({ onUpdate: () => new Date() })
 	updated: Date = new Date();
-
-	@DeleteDateColumn()
-	deleted: Date;
 
 	/**
 	 * Create a new entity

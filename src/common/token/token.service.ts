@@ -1,7 +1,7 @@
+import { EntityRepository } from '@mikro-orm/mysql';
+import { InjectRepository } from '@mikro-orm/nestjs';
 import { Inject, Injectable } from '@nestjs/common';
 import { JwtService, JwtVerifyOptions } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Token } from './token.entity';
 
 @Injectable()
@@ -19,7 +19,8 @@ export class TokenService {
 		private jwtService: JwtService,
 		@Inject('SECRETS')
 		secrets: { private: string; public: string },
-		@InjectRepository(Token) private tokenRepository: Repository<Token>,
+		@InjectRepository(Token)
+		private tokenRepository: EntityRepository<Token>,
 	) {
 		if (!secrets.public) throw new Error('No public key found.');
 		if (!secrets.private) throw new Error('No public key found.');
@@ -69,9 +70,7 @@ export class TokenService {
 	 */
 	async getTokensForUser(userID: string): Promise<Token[]> {
 		return this.tokenRepository.find({
-			where: {
-				user: userID,
-			},
+			user: userID,
 		});
 	}
 
@@ -80,7 +79,8 @@ export class TokenService {
 	 * @param token Token
 	 */
 	async save(token: Token): Promise<Token> {
-		return this.tokenRepository.save(token);
+		await this.tokenRepository.persistAndFlush(token);
+		return token;
 	}
 
 	/**
@@ -89,9 +89,9 @@ export class TokenService {
 	 */
 	async deleteAll(userId: string) {
 		return this.tokenRepository
-			.createQueryBuilder('tokens')
+			.createQueryBuilder('token')
 			.delete()
-			.where('tokens."userId" = :userId', { userId })
+			.where({ user: userId })
 			.execute();
 	}
 
@@ -100,7 +100,7 @@ export class TokenService {
 	 * @param token Token to query by
 	 */
 	async delete(token: string) {
-		this.tokenRepository.delete({
+		await this.tokenRepository.removeAndFlush({
 			token,
 		});
 	}

@@ -1,5 +1,5 @@
 import { forwardRef, HttpModule, Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { User } from './user.entity';
 import { UserResolver } from './user.resolver';
 import { UserService } from './user.service';
@@ -12,7 +12,7 @@ import { CodeModule } from '../auth/code/code.module';
 
 @Module({
 	imports: [
-		TypeOrmModule.forFeature([User]),
+		MikroOrmModule.forFeature([User]),
 		HttpModule,
 		forwardRef(() => AuthModule),
 		CodeModule,

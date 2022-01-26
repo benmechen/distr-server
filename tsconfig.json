@@ -13,6 +13,8 @@
 		"incremental": true,
 		"esModuleInterop": true,
 		"strict": true,
-		"strictPropertyInitialization": false
+		"strictPropertyInitialization": false,
+		"skipLibCheck": true,
+		"lib": ["ES2019"]
 	}
 }

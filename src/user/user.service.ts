@@ -1,18 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { compare, hash } from 'bcrypt';
-import { Repository } from 'typeorm';
 import parsePhoneNumber from 'libphonenumber-js';
 import { NotificationService } from '@chelseaapps/notification';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/mysql';
 import { APIError, APIErrorCode } from '../common/api.error';
 import { BaseService } from '../common/base/base.service';
-import { ConnectionFilter } from '../common/base/connection.filter';
-import { ConnectionSort } from '../common/base/connection.sort';
 import { HelperService } from '../common/helper/helper.service';
 import UserCreatedNotification from './notifications/created.notification';
 import { User, UserRole } from './user.entity';
-import { SearchQuery } from '../common/search.builder';
 import { CreateUserDTO } from './dto/create-user.dto';
 import { UpdateUserDTO } from './dto/update-user.dto';
 
@@ -23,7 +20,7 @@ export class UserService extends BaseService<
 	UpdateUserDTO
 > {
 	constructor(
-		@InjectRepository(User) private userRepository: Repository<User>,
+		@InjectRepository(User) private userRepository: EntityRepository<User>,
 		helperService: HelperService,
 		configService: ConfigService,
 		private notificationService: NotificationService,
@@ -35,7 +32,7 @@ export class UserService extends BaseService<
 	 * Find a user in the data store by their email
 	 * @param email Email to query
 	 */
-	async findByEmail(email: string): Promise<User | undefined> {
+	async findByEmail(email: string): Promise<User | null> {
 		return this.userRepository.findOne({ email: email.toLowerCase() });
 	}
 
@@ -43,9 +40,9 @@ export class UserService extends BaseService<
 	 * Find a user in the data store by their username (email or phone)
 	 * @param username Username to query
 	 */
-	async findByEmailOrPhone(username: string): Promise<User | undefined> {
+	async findByEmailOrPhone(username: string): Promise<User | null> {
 		return this.userRepository.findOne({
-			where: [
+			$or: [
 				{
 					email: username.toLowerCase(),
 				},
@@ -65,72 +62,53 @@ export class UserService extends BaseService<
 	}
 
 	/**
-	 * Find a user in the data store by their phone
-	 * @param phone Phone to query
-	 */
-	async findByPhone(phone: string): Promise<User | undefined> {
-		return this.userRepository.findOne({
-			phone: this.formatPhoneNumber(phone),
-		});
-	}
-
-	/**
-	 * Check if a phone has already been registed
-	 * @param phone Phone to check
-	 */
-	async isPhoneRegistered(phone: string): Promise<boolean> {
-		return !!(await this.findByPhone(phone));
-	}
-
-	/**
 	 * Search for a user, and return a paginated list
 	 * @param take Number of users to return
 	 * @param skip Number of results to skip for pagination
 	 * @param query Search query (first & last names, email, phone)
 	 */
-	async search(
-		take?: number,
-		skip?: number,
-		sort?: ConnectionSort<User>,
-		filter?: ConnectionFilter,
-	) {
-		const query = new SearchQuery<User>(this.userRepository)
-			.order(sort)
-			.filter(filter?.fields)
-			.search(
-				[
-					{
-						field: 'id',
-						type: 'id',
-					},
-					{
-						field: 'firstName',
-					},
-					{
-						field: 'lastName',
-					},
-					{
-						field: 'email',
-					},
-					{
-						field: 'phone',
-					},
-				],
-				filter?.query,
-			);
+	// async search(
+	// 	take?: number,
+	// 	skip?: number,
+	// 	sort?: ConnectionSort<User>,
+	// 	filter?: ConnectionFilter,
+	// ) {
+	// 	const query = new SearchQuery<User>(this.userRepository)
+	// 		.order(sort)
+	// 		.filter(filter?.fields)
+	// 		.search(
+	// 			[
+	// 				{
+	// 					field: 'id',
+	// 					type: 'id',
+	// 				},
+	// 				{
+	// 					field: 'firstName',
+	// 				},
+	// 				{
+	// 					field: 'lastName',
+	// 				},
+	// 				{
+	// 					field: 'email',
+	// 				},
+	// 				{
+	// 					field: 'phone',
+	// 				},
+	// 			],
+	// 			filter?.query,
+	// 		);
 
-		return query.execute(take, skip);
-	}
+	// 	return query.execute(take, skip);
+	// }
 
 	/**
 	 * Create a new user and save to the data store
 	 * @param input UserInput object
 	 */
 	async create(input: CreateUserDTO): Promise<User> {
-		return this.userRepository.save({
+		return super.create({
 			...input,
 			password: await hash(input.password, 12),
-			phone: this.formatPhoneNumber(input.phone),
 		});
 	}
 
@@ -151,19 +129,13 @@ export class UserService extends BaseService<
 	 * @param input Input containing requiring update
 	 */
 	async update(user: User, input: UpdateUserDTO): Promise<User> {
-		const updatedUser = await this.userRepository.save({
-			...user,
+		return super.update(user, {
 			...input,
 			// Hash password, if given
 			password: input.password
 				? await hash(input.password, 12)
 				: user.password,
-			// Format phone if given
-			phone: input.phone
-				? this.formatPhoneNumber(input.phone)
-				: user.phone,
 		});
-		return updatedUser;
 	}
 
 	/*
@@ -171,44 +143,13 @@ export class UserService extends BaseService<
 	 * @param user User object to update
 	 * @param input Input containing requiring update
 	 */
-	async activate(user: User): Promise<User> {
-		return this.userRepository.save({
-			...user,
-			...{ active: true },
-		});
-	}
+	async activate(user: User, flush = true): Promise<User> {
+		user.active = true;
 
-	/**
-	 * Delete a user either by their ID or by providing a User entity
-	 * @param entity ID as a string, or a User entity object
-	 * @returns The provided entity/ID if successfull, otherwise null
-	 */
-	delete(entity: string): Promise<User | null>;
+		if (flush) await this.repository.persistAndFlush(user);
+		else this.repository.persist(user);
 
-	delete(entity: User): Promise<User | null>;
-
-	async delete(entity: string | User): Promise<User | null> {
-		let user: User | undefined;
-		if (typeof entity === 'string') {
-			// ID was passed in
-			user = await this.findByID(entity);
-		} else {
-			// Otherwise user was passed in
-			user = entity;
-		}
-		if (!user) return null;
-
-		user.firstName = 'Deleted';
-		user.lastName = 'User';
-		user.email = `${user.id}@deleted`;
-		user.password = '';
-		user.phone = `${user.id}@deleted`;
-		user.issuedTokens = [];
-		user.locked = true;
-		user.active = false;
-
-		await this.userRepository.save(user);
-		return this.userRepository.softRemove(user);
+		return user;
 	}
 
 	/**
