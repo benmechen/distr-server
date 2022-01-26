@@ -14,22 +14,23 @@ import { Article } from './article/article.entity';
 export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
 	constructor(private configService: ConfigService) {}
 
-	createMikroOrmOptions():
-		| MikroOrmModuleOptions<MySqlDriver>
-		| Promise<MikroOrmModuleOptions<MySqlDriver>> {
-		return {
+	createMikroOrmOptions(migration = false) {
+		const config: MikroOrmModuleOptions<MySqlDriver> = {
 			type: 'mysql',
 			host: this.configService.get('DB_HOST'),
 			dbName: this.configService.get('DB_NAME'),
 			port: +(this.configService.get<number>('DB_PORT') ?? 3306),
 			user: this.configService.get('DB_USER'),
 			password: this.configService.get('DB_PASSWORD'),
-			// autoLoadEntities: true,
-			entities: [User, Code, Token, Article],
 			cache: {
 				enabled: true,
 			},
 		};
+
+		if (migration) config.entities = [User, Code, Token, Article];
+		else config.autoLoadEntities = true;
+
+		return config;
 	}
 }
 
