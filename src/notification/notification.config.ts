@@ -7,12 +7,9 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from 'winston';
 import { HelperService } from '../common/helper/helper.service';
 import { LoggerFactory } from '../common/logger';
-import { AWSHelperService } from '../common/token/aws.service';
 
 @Injectable()
 export class NotificationConfig implements NotificationOptionsFactory {
-	private awsHelperService = new AWSHelperService();
-
 	private logger: Logger;
 
 	constructor(
@@ -44,14 +41,6 @@ export class NotificationConfig implements NotificationOptionsFactory {
 				},
 			};
 
-		const apnsKey = await this.awsHelperService.getSecret(
-			this.helperService.getFromConfig<string>('APNS_KEY_NAME'),
-		);
-
-		const pushEnvironment = this.helperService
-			.getFromConfig<string>('APNS_ENVIRONMENT')
-			.toLowerCase();
-
 		return {
 			logger: this.logger,
 			email: {
@@ -79,20 +68,7 @@ export class NotificationConfig implements NotificationOptionsFactory {
 				messageType: 'Transactional',
 			},
 			push: {
-				enabled: true,
-				production: ['prod', 'production'].includes(pushEnvironment),
-				apns: {
-					topic: this.helperService.getFromConfig<string>(
-						'APNS_TOPIC',
-					),
-					key: apnsKey!,
-					keyID: this.helperService.getFromConfig<string>(
-						'APNS_KEY_ID',
-					),
-					teamID: this.helperService.getFromConfig<string>(
-						'APNS_TEAM_ID',
-					),
-				},
+				enabled: false,
 			},
 		};
 	}

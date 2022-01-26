@@ -65,15 +65,11 @@ export const apolloConfig = (
 		sortSchema: true,
 		context: ({ req, res }): APIContext => ({ req, res }),
 		formatError,
-		playground: true,
 		introspection: true,
 		cors: {
 			credentials: true,
 			origin: corsOrigins,
 		},
 		installSubscriptionHandlers: true,
-		subscriptions: {
-			path: '/subscriptions',
-		},
 	};
 };

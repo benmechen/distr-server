@@ -1,14 +1,20 @@
-import { Column, Entity } from 'typeorm';
+import { Entity, Property } from '@mikro-orm/core';
 import { Node } from '../../common/base/base.entity';
 
-@Entity('codes')
+@Entity({})
 export class Code extends Node {
-	@Column({
+	constructor(code: string, identitfier: string) {
+		super();
+		this.code = code;
+		this.identifier = identitfier;
+	}
+
+	@Property({
 		unique: true,
 	})
 	code: string;
 
-	@Column()
+	@Property()
 	identifier: string;
 }
 

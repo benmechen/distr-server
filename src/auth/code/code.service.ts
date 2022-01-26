@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectRepository } from '@nestjs/typeorm';
 import ms from 'ms';
 import parsePhoneNumber from 'libphonenumber-js';
-import { LessThanOrEqual, Repository } from 'typeorm';
 import { NotificationService } from '@chelseaapps/notification';
+import { InjectRepository } from '@mikro-orm/nestjs';
+import { EntityRepository } from '@mikro-orm/mysql';
 import { APIError, APIErrorCode } from '../../common/api.error';
 import { TokenService } from '../../common/token/token.service';
 import { Code } from './code.entity';
@@ -21,7 +21,7 @@ export class CodeService {
 	private lifetime: string;
 
 	constructor(
-		@InjectRepository(Code) private codeRepository: Repository<Code>,
+		@InjectRepository(Code) private codeRepository: EntityRepository<Code>,
 		private notificationService: NotificationService,
 		private configService: ConfigService,
 		private tokenService: TokenService,
@@ -40,12 +40,9 @@ export class CodeService {
 		// succeeded, an error is thrown
 		const code = await this.retry(100, async () => {
 			const randomString = this.getRandomCode();
-			const code = Code.of({
-				code: randomString,
-				identifier,
-			});
+			const code = new Code(randomString, identifier);
 
-			await this.codeRepository.save(code);
+			await this.codeRepository.persistAndFlush(code);
 			return randomString;
 		});
 
@@ -103,8 +100,9 @@ export class CodeService {
 
 		// Get all codes older than a day
 		const expiredCodes = await this.codeRepository.find({
-			where: {
-				created: LessThanOrEqual(expiry.toISOString()),
+			// created: LessThanOrEqual(expiry.toISOString()),
+			created: {
+				$lte: expiry,
 			},
 		});
 
@@ -123,7 +121,7 @@ export class CodeService {
 	}
 
 	async delete(entity: Code | string) {
-		let code: Code | undefined;
+		let code: Code | null;
 		if (typeof entity === 'string') {
 			// ID was passed in
 			code = await this.findByCode(entity);
@@ -131,7 +129,7 @@ export class CodeService {
 			// Otherwise code was passed in
 			code = entity;
 		}
-		return code ? this.codeRepository.remove(code) : null;
+		return code ? this.codeRepository.removeAndFlush(code) : null;
 	}
 
 	/**

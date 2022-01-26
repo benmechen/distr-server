@@ -1,12 +1,6 @@
-import { OmitType } from '@nestjs/graphql';
 import { UserCreateInput } from '../create/create.input';
-import { TermsOfService, UserRole } from '../user.entity';
+import { UserRole } from '../user.entity';
 
-export class CreateUserDTO extends OmitType(UserCreateInput, [
-	'tos',
-	'verification',
-] as const) {
-	tos: TermsOfService;
-
+export class CreateUserDTO extends UserCreateInput {
 	role: UserRole;
 }

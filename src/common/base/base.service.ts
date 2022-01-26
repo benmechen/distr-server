@@ -1,16 +1,15 @@
+import { EntityRepository, PrimaryKeyType, wrap } from '@mikro-orm/core';
 import { ConfigService } from '@nestjs/config';
-import { DeepPartial, Repository } from 'typeorm';
 import { Logger } from 'winston';
 import { APIError, APIErrorCode } from '../api.error';
 import { HelperService } from '../helper/helper.service';
 import { LoggerFactory } from '../logger';
-import { SearchQuery } from '../search.builder';
 import { Node } from './base.entity';
 import { ConnectionFilter } from './connection.filter';
 import { ConnectionSort } from './connection.sort';
 
 export interface IBaseService<T, C, U> {
-	findByID(id: string): Promise<T | undefined>;
+	findByID(id: string): Promise<T | null>;
 	findByIDs(ids: string[]): Promise<T[]>;
 	findAll(): Promise<T[]>;
 	search(
@@ -31,7 +30,7 @@ export class BaseService<T extends Node, C, U>
 
 	constructor(
 		name: string,
-		protected repository: Repository<T>,
+		protected repository: EntityRepository<T>,
 		protected helperService: HelperService,
 		configService: ConfigService,
 	) {
@@ -42,13 +41,15 @@ export class BaseService<T extends Node, C, U>
 	 * Find a single entity by its ID
 	 * @param id UUID to query
 	 */
-	async findByID(id: string): Promise<T | undefined> {
+	async findByID(id: string): Promise<T | null> {
 		if (!this.helperService.isValidID(id))
 			throw new APIError(APIErrorCode.INVALID_ID);
 
 		this.logger.debug('findByID', { id });
 
-		return this.repository.findOne(id);
+		return this.repository.findOne({
+			[PrimaryKeyType]: id,
+		});
 	}
 
 	/**
@@ -63,7 +64,11 @@ export class BaseService<T extends Node, C, U>
 
 		this.logger.debug('findByIDs', { ids });
 
-		return this.repository.findByIds(ids);
+		// return this.repository.find({
+		// 	[PrimaryKeyType]: In,
+		// });
+
+		return [];
 	}
 
 	/**
@@ -71,7 +76,7 @@ export class BaseService<T extends Node, C, U>
 	 */
 	async findAll(): Promise<T[]> {
 		this.logger.debug('findAll');
-		return this.repository.find();
+		return this.repository.findAll();
 	}
 
 	/**
@@ -85,33 +90,40 @@ export class BaseService<T extends Node, C, U>
 		skip?: number,
 		sort?: ConnectionSort<T>,
 		filter?: ConnectionFilter,
-	) {
+	): Promise<[T[], number]> {
 		this.logger.debug('search', { take, skip, sort, filter });
 
-		const query = new SearchQuery<T>(this.repository)
-			.order(sort)
-			.filter(filter?.fields)
-			.search(
-				[
-					{
-						field: 'id',
-						type: 'id',
-					},
-				],
-				filter?.query,
-			);
+		// const query = new SearchQuery<T>(this.repository)
+		// 	.order(sort)
+		// 	.filter(filter?.fields)
+		// 	.search(
+		// 		[
+		// 			{
+		// 				field: 'id',
+		// 				type: 'id',
+		// 			},
+		// 		],
+		// 		filter?.query,
+		// 	);
 
-		return query.execute(take, skip);
+		// return query.execute(take, skip);
+		return [[], 0];
 	}
 
 	/**
 	 * Create a new entity and save to the data store
 	 * @param input EntityInput object
 	 */
-	async create(input: C): Promise<T> {
+	async create(input: C, flush = true): Promise<T> {
 		this.logger.info('create', { input });
 
-		return this.repository.save(input);
+		const entity = this.repository.create(input);
+		wrap(entity);
+
+		if (flush) await this.repository.persistAndFlush(entity);
+		else this.repository.persist(entity);
+
+		return entity;
 	}
 
 	/**
@@ -120,14 +132,15 @@ export class BaseService<T extends Node, C, U>
 	 * @param entity Entity object to update
 	 * @param input Input containing requiring update
 	 */
-	async update(entity: T, input: U): Promise<T> {
+	async update(entity: T, input: U, flush = true): Promise<T> {
 		this.logger.info('update', { entity, input });
 
-		const updatedUser = await this.repository.save({
-			...entity,
-			...input,
-		});
-		return updatedUser;
+		wrap(entity).assign(input);
+		this.repository.persist(entity);
+
+		if (flush) await this.repository.flush();
+
+		return entity;
 	}
 
 	/**
@@ -139,8 +152,8 @@ export class BaseService<T extends Node, C, U>
 
 	delete(entity: T): Promise<T | null>;
 
-	async delete(entity: string | T): Promise<T | null> {
-		let _entity: T | undefined;
+	async delete(entity: string | T, flush = true): Promise<T | null> {
+		let _entity: T | null;
 		if (typeof entity === 'string') {
 			// ID was passed in
 			_entity = await this.findByID(entity);
@@ -153,6 +166,11 @@ export class BaseService<T extends Node, C, U>
 
 		this.logger.info('delete', { _entity });
 
-		return this.repository.softRemove(_entity as unknown as DeepPartial<T>);
+		// return this.repository.softRemove(_entity as unknown as DeepPartial<T>);
+		this.repository.remove(_entity);
+
+		if (flush) await this.repository.flush();
+
+		return _entity;
 	}
 }

@@ -11,7 +11,7 @@ class CodeNotification implements INotification {
 	constructor(phone: string, code: string) {
 		// Notification service expects users, but OTCs don't work with users, just identifiers
 		this.to = User.of({
-			phone,
+			// phone,
 		});
 
 		this.smsBody = `Your {project-name} verification code is: ${code}`;

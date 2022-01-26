@@ -32,6 +32,10 @@
 	},
 	"dependencies": {
 		"@chelseaapps/notification": "^1.10.1",
+		"@mikro-orm/cli": "^4.5.10",
+		"@mikro-orm/core": "^4.5.10",
+		"@mikro-orm/mysql": "^4.5.10",
+		"@mikro-orm/nestjs": "^4.3.1",
 		"@nestjs/bull": "^0.3.1",
 		"@nestjs/common": "^7.6.17",
 		"@nestjs/config": "^0.5.0",
@@ -78,6 +82,7 @@
 		"rimraf": "^3.0.2",
 		"rxjs": "^6.6.3",
 		"typeorm": "^0.2.29",
+		"uuid": "^8.3.2",
 		"winston": "^3.3.3"
 	},
 	"devDependencies": {
@@ -100,6 +105,7 @@
 		"@types/passport-jwt": "^3.0.3",
 		"@types/sanitize-html": "^1.27.0",
 		"@types/supertest": "^2.0.10",
+		"@types/uuid": "^8.3.4",
 		"@typescript-eslint/eslint-plugin": "^4.24.0",
 		"@typescript-eslint/parser": "^4.24.0",
 		"cross-env": "^7.0.3",
@@ -154,8 +160,10 @@
 	"lint-staged": {
 		"src/**/*.ts": [
 			"npm run format",
-			"npm run lint",
-			"npm test -- --findRelatedTests"
+			"npm run lint"
 		]
+	},
+	"mikro-orm": {
+		"useTsNode": true
 	}
 }

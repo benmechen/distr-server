@@ -89,7 +89,7 @@ export const BaseResolver = <
 			nullable: true,
 			description: `Get a single ${suffix}`,
 		})
-		async getSingle(@Args('id') id: string): Promise<T | undefined> {
+		async getSingle(@Args('id') id: string): Promise<T | null> {
 			return this.service.findByID(id);
 		}
 

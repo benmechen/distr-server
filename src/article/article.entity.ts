@@ -1,32 +1,29 @@
+import { Entity, Property } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Column, Entity } from 'typeorm';
 import { Node } from '../common/base/base.entity';
 import { Paginated } from '../common/base/paginated.entity';
 
-@Entity('articles')
+@Entity()
 @ObjectType({ description: 'Article model' })
 export class Article extends Node {
-	@Column({ unique: true, nullable: true })
-	optaId: string;
-
 	@Field({ description: 'Article title' })
-	@Column()
+	@Property()
 	title: string;
 
 	@Field({ description: 'Article title' })
-	@Column({ default: '${project-name}' })
-	publisher: string;
+	@Property()
+	publisher = 'distr';
 
 	@Field({ description: "URL of article's header image", nullable: true })
-	@Column()
+	@Property()
 	image: string;
 
 	@Field({ description: 'Short article description' })
-	@Column()
+	@Property()
 	teaser: string;
 
 	@Field({ description: 'Article body text' })
-	@Column()
+	@Property()
 	body: string;
 }
 

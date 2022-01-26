@@ -244,7 +244,6 @@ export class HelperService {
 			lastName: faker.name.lastName(),
 			email: faker.internet.email().toLowerCase(),
 			password: faker.internet.password(),
-			phone: faker.phone.phoneNumber('07425######'),
 			created: new Date(),
 			updated: new Date(),
 		});
