@@ -1,9 +1,17 @@
 // eslint-disable-next-line max-classes-per-file
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { Cascade, Entity, Enum, OneToMany, Property } from '@mikro-orm/core';
+import {
+	Cascade,
+	Entity,
+	Enum,
+	ManyToOne,
+	OneToMany,
+	Property,
+} from '@mikro-orm/core';
 import { Token } from '../common/token/token.entity';
 import { Node } from '../common/base/base.entity';
 import { Paginated } from '../common/base/paginated.entity';
+import { Organisation } from '../organisation/organisation.entity';
 
 export enum UserRole {
 	CUSTOMER = 'CUSTOMER',
@@ -77,6 +85,10 @@ export class User extends Node implements IUser {
 	})
 	@Property({ nullable: true })
 	timeout?: Date | null;
+
+	// Relations
+	@ManyToOne()
+	organisation: Organisation;
 
 	// One Time Code
 	@Property({

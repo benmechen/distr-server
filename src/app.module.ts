@@ -20,6 +20,7 @@ import { LoggingPlugin } from './common/plugins/logging.plugin';
 import { ComplexityPlugin } from './common/plugins/complexity.plugin';
 import { HelperService } from './common/helper/helper.service';
 import { WinstonConfig } from './winston.config';
+import { OrganisationModule } from './organisation/organisation.module';
 
 @Module({
 	imports: [
@@ -73,6 +74,7 @@ import { WinstonConfig } from './winston.config';
 		AuthModule,
 		ArticleModule,
 		CommonModule,
+		OrganisationModule,
 	],
 	controllers: [StatusController],
 	providers: [LoggingPlugin, ComplexityPlugin],
