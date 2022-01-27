@@ -1,4 +1,4 @@
-import { EntityRepository, PrimaryKeyType, wrap } from '@mikro-orm/core';
+import { EntityRepository, FilterQuery, wrap } from '@mikro-orm/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'winston';
 import { APIError, APIErrorCode } from '../api.error';
@@ -10,6 +10,7 @@ import { ConnectionSort } from './connection.sort';
 
 export interface IBaseService<T, C, U> {
 	findByID(id: string): Promise<T | null>;
+	findByIDOrFail(id: string): Promise<T>;
 	findByIDs(ids: string[]): Promise<T[]>;
 	findAll(): Promise<T[]>;
 	search(
@@ -48,8 +49,21 @@ export class BaseService<T extends Node, C, U>
 		this.logger.debug('findByID', { id });
 
 		return this.repository.findOne({
-			[PrimaryKeyType]: id,
-		});
+			id,
+		} as FilterQuery<T>);
+	}
+
+	/**
+	 * Find a single entity by its ID, or throw an error if it does not exist
+	 * @param id UUID to query
+	 */
+	async findByIDOrFail(id: string): Promise<T> {
+		this.logger.debug('findByIDOrFail', { id });
+
+		const entity = await this.findByID(id);
+		if (!entity) throw new APIError(APIErrorCode.NOT_FOUND);
+
+		return entity;
 	}
 
 	/**

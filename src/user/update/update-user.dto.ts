@@ -1,4 +1,4 @@
-import { UserUpdateInput } from '../update/update.input';
+import { UserUpdateInput } from './update.input';
 
 export class UpdateUserDTO extends UserUpdateInput {
 	timeout?: Date | null;
