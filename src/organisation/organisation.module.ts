@@ -6,5 +6,6 @@ import { OrganisationService } from './organisation.service';
 @Module({
 	imports: [MikroOrmModule.forFeature([Organisation])],
 	providers: [OrganisationService],
+	exports: [OrganisationService],
 })
 export class OrganisationModule {}

@@ -9,6 +9,7 @@ import { UserDeleteResolver } from './delete/delete.resolver';
 import { AuthModule } from '../auth/auth.module';
 import { UserTimeoutResolver } from './timeout/timeout.resolver';
 import { CodeModule } from '../auth/code/code.module';
+import { OrganisationModule } from '../organisation/organisation.module';
 
 @Module({
 	imports: [
@@ -16,6 +17,7 @@ import { CodeModule } from '../auth/code/code.module';
 		HttpModule,
 		forwardRef(() => AuthModule),
 		CodeModule,
+		OrganisationModule,
 	],
 	providers: [
 		UserResolver,

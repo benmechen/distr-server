@@ -87,6 +87,7 @@ export class User extends Node implements IUser {
 	timeout?: Date | null;
 
 	// Relations
+	@Field(() => Organisation, { description: "User's organisation" })
 	@ManyToOne()
 	organisation: Organisation;
 

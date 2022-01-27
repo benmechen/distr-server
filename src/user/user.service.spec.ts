@@ -15,7 +15,7 @@ import { UserService } from './user.service';
 import { HelpersServiceMock } from '../common/helper/helper.service.mock';
 import { TokenServiceMock } from '../common/token/token.service.mock';
 import { APIErrorCode } from '../common/api.error';
-import { CreateUserDTO } from './dto/create-user.dto';
+import { CreateUserDTO } from './create/create-user.dto';
 
 describe('UserService', () => {
 	let module: TestingModule;

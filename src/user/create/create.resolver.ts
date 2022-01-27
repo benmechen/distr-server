@@ -10,6 +10,8 @@ import { AdminUserCreateInput } from './adminCreate.input';
 import { UserCreateInput } from './create.input';
 import { UserCreateResponse } from './create.response';
 import { LoggerFactory } from '../../common/logger';
+import { Organisation } from '../../organisation/organisation.entity';
+import { OrganisationService } from '../../organisation/organisation.service';
 
 @Resolver()
 export class UserCreateResolver {
@@ -18,6 +20,7 @@ export class UserCreateResolver {
 	constructor(
 		private userService: UserService,
 		private authService: AuthService,
+		private organisatinoService: OrganisationService,
 		configService: ConfigService,
 	) {
 		this.logger = new LoggerFactory(configService).getLogger(
@@ -36,10 +39,28 @@ export class UserCreateResolver {
 		if (await this.userService.isEmailRegistered(input.email))
 			throw new APIError(APIErrorCode.USER_EXISTS_EMAIL);
 
-		const user = await this.userService.create({
-			...input,
-			role,
-		});
+		let organisation: Organisation;
+		if (input.organisationID)
+			organisation = await this.organisatinoService.findByIDOrFail(
+				input.organisationID,
+			);
+		else
+			organisation = await this.organisatinoService.create(
+				{
+					name: `${input.firstName}'s Organisation`,
+				},
+				false,
+			);
+
+		const user = await this.userService.create(
+			{
+				...input,
+				role,
+			},
+			false,
+		);
+
+		await this.organisatinoService.addMember(user, organisation);
 
 		this.userService.sendWelcomeEmail(user);
 

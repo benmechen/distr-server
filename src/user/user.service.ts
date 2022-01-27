@@ -10,8 +10,8 @@ import { BaseService } from '../common/base/base.service';
 import { HelperService } from '../common/helper/helper.service';
 import UserCreatedNotification from './notifications/created.notification';
 import { User, UserRole } from './user.entity';
-import { CreateUserDTO } from './dto/create-user.dto';
-import { UpdateUserDTO } from './dto/update-user.dto';
+import { CreateUserDTO } from './create/create-user.dto';
+import { UpdateUserDTO } from './update/update-user.dto';
 
 @Injectable()
 export class UserService extends BaseService<
@@ -41,16 +41,7 @@ export class UserService extends BaseService<
 	 * @param username Username to query
 	 */
 	async findByEmailOrPhone(username: string): Promise<User | null> {
-		return this.userRepository.findOne({
-			$or: [
-				{
-					email: username.toLowerCase(),
-				},
-				{
-					phone: this.formatPhoneNumber(username),
-				},
-			],
-		});
+		return this.findByEmail(username);
 	}
 
 	/**
@@ -105,11 +96,14 @@ export class UserService extends BaseService<
 	 * Create a new user and save to the data store
 	 * @param input UserInput object
 	 */
-	async create(input: CreateUserDTO): Promise<User> {
-		return super.create({
-			...input,
-			password: await hash(input.password, 12),
-		});
+	async create(input: CreateUserDTO, flush = true): Promise<User> {
+		return super.create(
+			{
+				...input,
+				password: await hash(input.password, 12),
+			},
+			flush,
+		);
 	}
 
 	/**

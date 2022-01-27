@@ -1,4 +1,4 @@
-import { Entity, OneToMany, Property } from '@mikro-orm/core';
+import { Collection, Entity, OneToMany, Property } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Node } from '../common/base/base.entity';
 import { User } from '../user/user.entity';
@@ -11,5 +11,5 @@ export class Organisation extends Node {
 	name: string;
 
 	@OneToMany(() => User, (user) => user.organisation)
-	members: User[];
+	members = new Collection<User>(this);
 }
