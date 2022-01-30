@@ -4,6 +4,7 @@ import {
 	Cascade,
 	Entity,
 	Enum,
+	IdentifiedReference,
 	ManyToOne,
 	OneToMany,
 	Property,
@@ -88,8 +89,8 @@ export class User extends Node implements IUser {
 
 	// Relations
 	@Field(() => Organisation, { description: "User's organisation" })
-	@ManyToOne()
-	organisation: Organisation;
+	@ManyToOne(() => Organisation, { wrappedReference: true })
+	organisation: IdentifiedReference<Organisation>;
 
 	// One Time Code
 	@Property({

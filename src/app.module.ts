@@ -21,6 +21,7 @@ import { ComplexityPlugin } from './common/plugins/complexity.plugin';
 import { HelperService } from './common/helper/helper.service';
 import { WinstonConfig } from './winston.config';
 import { OrganisationModule } from './organisation/organisation.module';
+import { SystemModule } from './system/system.module';
 
 @Module({
 	imports: [
@@ -75,6 +76,7 @@ import { OrganisationModule } from './organisation/organisation.module';
 		ArticleModule,
 		CommonModule,
 		OrganisationModule,
+		SystemModule,
 	],
 	controllers: [StatusController],
 	providers: [LoggingPlugin, ComplexityPlugin],

@@ -10,6 +10,7 @@ import { Code } from './auth/code/code.entity';
 import { Token } from './common/token/token.entity';
 import { Article } from './article/article.entity';
 import { Organisation } from './organisation/organisation.entity';
+import { System } from './system/system.entity';
 
 @Injectable()
 export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
@@ -29,7 +30,14 @@ export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
 		};
 
 		if (migration)
-			config.entities = [User, Code, Token, Article, Organisation];
+			config.entities = [
+				User,
+				Code,
+				Token,
+				Article,
+				Organisation,
+				System,
+			];
 		else config.autoLoadEntities = true;
 
 		return config;
