@@ -40,4 +40,15 @@ export class OrganisationService extends BaseService<
 		if (flush) await this.repository.persistAndFlush(organisation);
 		return organisation;
 	}
+
+	/**
+	 * Check if a user is a member of an organisation
+	 * @param user Member to check
+	 * @param organisation Organisation
+	 * @returns Member or not
+	 */
+	async isMember(user: User, organisation: Organisation): Promise<boolean> {
+		const members = await organisation.members.init();
+		return members.contains(user);
+	}
 }
