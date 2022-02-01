@@ -42,11 +42,11 @@ export class BaseService<T extends Node, C, U>
 	 * Find a single entity by its ID
 	 * @param id UUID to query
 	 */
-	async findByID(id: string): Promise<T | null> {
+	async findByID(id: string, populate?: (keyof T)[]): Promise<T | null> {
 		if (!this.helperService.isValidID(id))
 			throw new APIError(APIErrorCode.INVALID_ID);
 
-		this.logger.debug('findByID', { id });
+		this.logger.debug('findByID', { id, populate });
 
 		return this.repository.findOne({
 			id,
@@ -57,10 +57,10 @@ export class BaseService<T extends Node, C, U>
 	 * Find a single entity by its ID, or throw an error if it does not exist
 	 * @param id UUID to query
 	 */
-	async findByIDOrFail(id: string): Promise<T> {
-		this.logger.debug('findByIDOrFail', { id });
+	async findByIDOrFail(id: string, populate?: (keyof T)[]): Promise<T> {
+		this.logger.debug('findByIDOrFail', { id, populate });
 
-		const entity = await this.findByID(id);
+		const entity = await this.findByID(id, populate);
 		if (!entity) throw new APIError(APIErrorCode.NOT_FOUND);
 
 		return entity;
