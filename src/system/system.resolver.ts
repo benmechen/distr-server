@@ -11,6 +11,8 @@ import { Auth, GQLUser } from '../common/decorators';
 import { HelperService } from '../common/helper/helper.service';
 import { Organisation } from '../organisation/organisation.entity';
 import { User } from '../user/user.entity';
+import { Deployment } from './deployment/deployment.entity';
+import { DeploymentService } from './deployment/deployment.service';
 import { System, SystemConnection } from './system.entity';
 import { SystemService } from './system.service';
 
@@ -18,6 +20,7 @@ import { SystemService } from './system.service';
 export class SystemResolver {
 	constructor(
 		private readonly systemService: SystemService,
+		private readonly deploymentService: DeploymentService,
 		private readonly helperService: HelperService,
 	) {}
 
@@ -26,13 +29,19 @@ export class SystemResolver {
 		return system.organisation.load();
 	}
 
+	@ResolveField(() => [Deployment])
+	async deployments(@Parent() system: System) {
+		const [deployments] = await this.deploymentService.findBySystem(system);
+		return deployments;
+	}
+
 	@Auth()
 	@Query(() => System)
 	async system(
 		@GQLUser() user: User,
 		@Args({ name: 'id', type: () => ID }) id: string,
 	) {
-		return this.systemService.findByIDOrFail(id, user);
+		return this.systemService.findByIDByUser(id, user);
 	}
 
 	@Auth()
@@ -43,8 +52,6 @@ export class SystemResolver {
 	) {
 		const page = _page ?? 1;
 		const offset = (page - 1) * limit;
-
-		console.log(user.organisation.id);
 
 		// Get results and number of results
 		const [results, count] = await this.systemService.findByOrganisation(

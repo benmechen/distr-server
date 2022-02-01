@@ -11,6 +11,7 @@ import { Token } from './common/token/token.entity';
 import { Article } from './article/article.entity';
 import { Organisation } from './organisation/organisation.entity';
 import { System } from './system/system.entity';
+import { Deployment } from './system/deployment/deployment.entity';
 
 @Injectable()
 export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
@@ -37,6 +38,7 @@ export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
 				Article,
 				Organisation,
 				System,
+				Deployment,
 			];
 		else config.autoLoadEntities = true;
 

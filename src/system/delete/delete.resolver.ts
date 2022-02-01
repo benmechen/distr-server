@@ -13,7 +13,7 @@ export class DeleteResolver {
 		@GQLUser() user: User,
 		@Args({ type: () => ID, name: 'id' }) id: string,
 	) {
-		const system = await this.systemService.findByIDOrFail(id, user);
+		const system = await this.systemService.findByIDByUser(id, user);
 
 		try {
 			await this.systemService.delete(system);

@@ -7,9 +7,14 @@ import { UpdateResolver } from './update/update.resolver';
 import { DeleteResolver } from './delete/delete.resolver';
 import { OrganisationModule } from '../organisation/organisation.module';
 import { SystemResolver } from './system.resolver';
+import { DeploymentModule } from './deployment/deployment.module';
 
 @Module({
-	imports: [MikroOrmModule.forFeature([System]), OrganisationModule],
+	imports: [
+		MikroOrmModule.forFeature([System]),
+		OrganisationModule,
+		DeploymentModule,
+	],
 	providers: [
 		SystemService,
 		CreateResolver,

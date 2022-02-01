@@ -34,13 +34,13 @@ export class SystemService extends BaseService<
 	}
 
 	/**
-	 * Find a system by it's ID, throw an error if does not exist or user does not have access
+	 * Find a system by its ID, throw an error if does not exist or user does not have access
 	 * @param id ID of system
 	 * @param user User to verify access (optional)
 	 * @returns System
 	 */
-	async findByIDOrFail(id: string, user?: User): Promise<System> {
-		const system = await super.findByIDOrFail(id);
+	async findByIDByUser(id: string, user: User): Promise<System> {
+		const system = await super.findByIDOrFail(id, ['deployments']);
 
 		if (user) {
 			const hasAccess = await this.hasAccess(user, system);
