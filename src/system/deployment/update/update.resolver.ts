@@ -16,7 +16,10 @@ export class UpdateResolver {
 		@Args({ name: 'id', type: () => ID }) id: string,
 		@Args('input') input: DeploymentUpdateInput,
 	) {
-		const deployment = await this.deploymentService.findByIDOrFail(id);
+		const deployment = await this.deploymentService.findByIDByUser(
+			id,
+			user,
+		);
 
 		return this.deploymentService.update(deployment, input);
 	}
