@@ -8,9 +8,9 @@ import { HelperService } from '../../common/helper/helper.service';
 import { User } from '../../user/user.entity';
 import { System } from '../system.entity';
 import { SystemService } from '../system.service';
-import { CreateDeploymentDTO } from './create/create-system.dto';
+import { CreateDeploymentDTO } from './create/create-deployment.dto';
 import { Deployment } from './deployment.entity';
-import { UpdateDeploymentDTO } from './update/update-system.dto';
+import { UpdateDeploymentDTO } from './update/update-deployment.dto';
 
 @Injectable()
 export class DeploymentService extends BaseService<

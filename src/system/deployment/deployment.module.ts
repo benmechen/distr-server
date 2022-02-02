@@ -7,11 +7,13 @@ import { DeploymentResolver } from './deployment.resolver';
 import { DeploymentService } from './deployment.service';
 import { Deployment } from './deployment.entity';
 import { SystemModule } from '../system.module';
+import { ResourceModule } from './resource/resource.module';
 
 @Module({
 	imports: [
 		MikroOrmModule.forFeature([Deployment]),
 		forwardRef(() => SystemModule),
+		ResourceModule,
 	],
 	providers: [
 		CreateResolver,
