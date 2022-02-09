@@ -13,6 +13,7 @@ import { Organisation } from './organisation/organisation.entity';
 import { System } from './system/system.entity';
 import { Deployment } from './system/deployment/deployment.entity';
 import { Resource } from './system/deployment/resource/resource.entity';
+import { Service } from './service/service.entity';
 
 @Injectable()
 export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
@@ -41,6 +42,7 @@ export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
 				System,
 				Deployment,
 				Resource,
+				Service,
 			];
 		else config.autoLoadEntities = true;
 
