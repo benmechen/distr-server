@@ -7,5 +7,6 @@ import { Service } from './service.entity';
 @Module({
 	imports: [MikroOrmModule.forFeature([Service]), HttpModule],
 	providers: [ServiceService, CreateResolver],
+	exports: [ServiceService],
 })
 export class ServiceModule {}

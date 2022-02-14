@@ -15,6 +15,7 @@ export class CreateResolver {
 	async serviceCreate(@Args('input') input: ServiceCreateInput) {
 		const proto = await this.serviceService.loadProto(
 			input.introspectionURL,
+			'json',
 		);
 		const namespace = this.serviceService.getNamespace(proto);
 		if (!namespace) throw new InvalidProto('No namespace found');

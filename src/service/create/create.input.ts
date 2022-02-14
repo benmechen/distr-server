@@ -1,5 +1,4 @@
 import { Field, InputType } from '@nestjs/graphql';
-import { IsUrl } from 'class-validator';
 
 @InputType()
 export class ServiceCreateInput {
@@ -9,11 +8,11 @@ export class ServiceCreateInput {
 	@Field()
 	description: string;
 
-	@IsUrl()
+	// @IsUrl()
 	@Field({ description: 'URL of service' })
 	serviceURL: string;
 
-	@IsUrl()
+	// @IsUrl()
 	@Field({ description: 'URL of proto introspection location' })
 	introspectionURL: string;
 }

@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../../../common/api.error';
 import { BaseService } from '../../../common/base/base.service';
 import { HelperService } from '../../../common/helper/helper.service';
+import { ServiceService } from '../../../service/service.service';
 import { User } from '../../../user/user.entity';
 import { Deployment } from '../deployment.entity';
 import { DeploymentService } from '../deployment.service';
@@ -24,6 +25,7 @@ export class ResourceService extends BaseService<
 		helperService: HelperService,
 		configService: ConfigService,
 		private readonly deploymentService: DeploymentService,
+		private readonly serviceService: ServiceService,
 	) {
 		super(
 			ResourceService.name,
@@ -83,5 +85,11 @@ export class ResourceService extends BaseService<
 	async hasAccess(user: User, resource: Resource): Promise<boolean> {
 		const system = await resource.deployment.load();
 		return this.deploymentService.hasAccess(user, system);
+	}
+
+	async create(input: CreateResourceDTO, flush?: boolean): Promise<Resource> {
+		const resource = await super.create(input, flush);
+		await this.serviceService.connect(input.service);
+		return resource;
 	}
 }

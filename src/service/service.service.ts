@@ -3,6 +3,12 @@ import { InjectRepository } from '@mikro-orm/nestjs';
 import { HttpService, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import protobuf from 'protobufjs';
+import * as grpc from '@grpc/grpc-js';
+import * as protoloader from '@grpc/proto-loader';
+import { join } from 'path';
+import { writeFile } from 'fs/promises';
+import { v4 as uuid } from 'uuid';
+import * as os from 'os';
 import { BaseService } from '../common/base/base.service';
 import { HelperService } from '../common/helper/helper.service';
 import { CreateServiceDTO } from './create/create-service.dto';
@@ -30,11 +36,39 @@ export class ServiceService extends BaseService<
 		);
 	}
 
-	async loadProto(url: string) {
-		const body = await this.httpService.get(url).toPromise();
-		const root = protobuf.parse(body.data);
+	async loadProto(
+		url: string,
+		returnType: 'json',
+	): Promise<protobuf.INamespace>;
 
-		return root.root.toJSON();
+	async loadProto(
+		url: string,
+		returnType: 'grpc',
+		service?: Service,
+	): Promise<grpc.GrpcObject>;
+
+	async loadProto(
+		url: string,
+		returnType: 'json' | 'grpc',
+		service?: Service,
+	) {
+		const body = await this.httpService.get(url).toPromise();
+
+		if (returnType === 'json') {
+			const root = protobuf.parse(body.data);
+			const json = root.root.toJSON();
+
+			return json;
+		}
+
+		// TODO - Check if already loaded
+		const tempFile = join(os.tmpdir(), `${service?.id ?? uuid()}.proto`);
+		await writeFile(tempFile, body.data);
+
+		const packageDefinition = await protoloader.load(tempFile, {
+			includeDirs: [join(__dirname, '../../../protos')],
+		});
+		return grpc.loadPackageDefinition(packageDefinition);
 	}
 
 	/**
@@ -76,5 +110,23 @@ export class ServiceService extends BaseService<
 			return false;
 
 		return true;
+	}
+
+	async connect(service: Service) {
+		const clientDef = await this.loadProto(
+			service.introspectionURL,
+			'grpc',
+		);
+		const MainService = (clientDef[service.namespace] as grpc.GrpcObject)
+			.MainService as grpc.ServiceClientConstructor;
+		const client = new MainService(
+			service.serviceURL,
+			grpc.credentials.createInsecure(),
+		);
+		console.log(client);
+		client.reflect({}, (error: any, data: any) => {
+			console.log(error);
+			console.log(data);
+		});
 	}
 }

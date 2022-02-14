@@ -69,6 +69,7 @@
 		"graphql-query-complexity": "^0.7.2",
 		"graphql-redis-subscriptions": "^2.4.0",
 		"graphql-tools": "^7.0.5",
+		"graphql-type-json": "^0.3.2",
 		"ioredis": "^4.27.3",
 		"jsonwebtoken": "^8.5.1",
 		"libphonenumber-js": "^1.9.18",
