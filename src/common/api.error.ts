@@ -59,6 +59,10 @@ export enum APIErrorCode {
 	 */
 	INVALID_ENTITY_TYPE = 'resource is not a valid entity type',
 	/**
+	 * The given proto file did not have the methods required in the specification
+	 */
+	INVALID_SERVICE_DEFINITION = 'The given service does not match the specification',
+	/**
 	 * The resource already exists
 	 */
 	EXISTS = 'That resource already exists',

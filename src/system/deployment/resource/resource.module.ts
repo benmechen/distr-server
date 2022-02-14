@@ -7,11 +7,13 @@ import { DeleteResolver } from './delete/delete.resolver';
 import { ResourceService } from './resource.service';
 import { DeploymentModule } from '../deployment.module';
 import { ResourceResolver } from './resource.resolver';
+import { ServiceModule } from '../../../service/service.module';
 
 @Module({
 	imports: [
 		MikroOrmModule.forFeature([Resource]),
 		forwardRef(() => DeploymentModule),
+		ServiceModule,
 	],
 	providers: [
 		CreateResolver,

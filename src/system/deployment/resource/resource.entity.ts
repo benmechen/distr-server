@@ -7,6 +7,7 @@ import {
 import { Field, ObjectType } from '@nestjs/graphql';
 import { Node } from '../../../common/base/base.entity';
 import { Paginated } from '../../../common/base/paginated.entity';
+import { Service } from '../../../service/service.entity';
 import { Deployment } from '../deployment.entity';
 
 @Entity()
@@ -18,6 +19,9 @@ export class Resource extends Node {
 
 	@ManyToOne(() => Deployment, { wrappedReference: true })
 	deployment: IdentifiedReference<Deployment>;
+
+	@ManyToOne(() => Service, { wrappedReference: true })
+	service: IdentifiedReference<Service>;
 }
 
 @ObjectType({ description: 'Paginated list of resources' })
