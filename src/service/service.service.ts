@@ -9,11 +9,13 @@ import { join } from 'path';
 import { writeFile } from 'fs/promises';
 import { v4 as uuid } from 'uuid';
 import * as os from 'os';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { BaseService } from '../common/base/base.service';
 import { HelperService } from '../common/helper/helper.service';
 import { CreateServiceDTO } from './create/create-service.dto';
 import { Service } from './service.entity';
 import { UpdateServiceDTO } from './update/update-service.dto';
+import { ServiceConnection } from './connection';
 
 @Injectable()
 export class ServiceService extends BaseService<
@@ -96,37 +98,67 @@ export class ServiceService extends BaseService<
 		const mainService = localised.nested?.MainService as protobuf.IService;
 		if (!mainService) return false;
 
-		const reflect = mainService.methods.Reflect;
-		if (!reflect) return false;
-		if (
-			reflect.requestType !==
-			'co.mechen.distr.common.v1.ReflectMethodRequest'
-		)
-			return false;
-		if (
-			reflect.responseType !==
-			'co.mechen.distr.common.v1.ReflectMethodResponse'
-		)
-			return false;
+		const reflect = this.validateMethod(
+			mainService.methods.Reflect,
+			'co.mechen.distr.common.v1.ReflectMethodRequest',
+			'co.mechen.distr.common.v1.ReflectMethodResponse',
+		);
+		const create = this.validateMethod(
+			mainService.methods.Create,
+			'co.mechen.distr.common.v1.CreateRequest',
+			'co.mechen.distr.common.v1.CreateResponse',
+		);
 
-		return true;
+		return !!reflect && !!create;
 	}
 
+	/**
+	 * Connect to a service
+	 * @param service Service
+	 * @returns Service connection
+	 */
 	async connect(service: Service) {
+		this.logger.debug('Connecting to service', { service });
 		const clientDef = await this.loadProto(
 			service.introspectionURL,
 			'grpc',
 		);
 		const MainService = (clientDef[service.namespace] as grpc.GrpcObject)
 			.MainService as grpc.ServiceClientConstructor;
-		const client = new MainService(
-			service.serviceURL,
-			grpc.credentials.createInsecure(),
+		const connection = new ServiceConnection(MainService, service);
+		this.logger.info('Connected to service', { connection });
+		return connection;
+	}
+
+	private validateMethod(
+		method?: protobuf.IMethod,
+		input?: string,
+		output?: string,
+	): protobuf.IMethod | false {
+		if (!method) return false;
+		if (method.requestType !== input) return false;
+		if (method.responseType !== output) return false;
+		return method;
+	}
+
+	@Cron(CronExpression.EVERY_DAY_AT_NOON)
+	async validateAllServices() {
+		const services = await this.findAll();
+		await Promise.all(
+			services.map(async (service) => {
+				const proto = await this.loadProto(
+					service.introspectionURL,
+					'json',
+				);
+				const namespace = this.getNamespace(proto);
+				// TODO: Invalid
+				if (!namespace) return false;
+
+				const valid = this.validate(proto, namespace);
+				// TODO: Invalid
+				if (!valid) return false;
+				return true;
+			}),
 		);
-		console.log(client);
-		client.reflect({}, (error: any, data: any) => {
-			console.log(error);
-			console.log(data);
-		});
 	}
 }

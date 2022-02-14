@@ -29,7 +29,9 @@
 		"stop:dependencies": "docker-compose -f docker-compose.e2e.yml down",
 		"test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --detectOpenHandles --forceExit",
 		"docs": "npx @compodoc/compodoc -p tsconfig.json -s",
-		"release": "standard-version --no-verify"
+		"release": "standard-version --no-verify",
+		"predev": "npm run generate",
+		"generate": "protoc --plugin=./node_modules/.bin/protoc-gen-ts_proto --ts_proto_out=./src/generated protos/co/mechen/distr/common/v1.proto --ts_proto_opt=nestJs=true --ts_proto_opt=esModuleInterop=true -I ./protos"
 	},
 	"dependencies": {
 		"@chelseaapps/notification": "^1.10.1",
@@ -87,6 +89,7 @@
 		"reflect-metadata": "^0.1.13",
 		"rimraf": "^3.0.2",
 		"rxjs": "^6.6.3",
+		"ts-proto": "^1.105.0",
 		"typeorm": "^0.2.29",
 		"uuid": "^8.3.2",
 		"winston": "^3.3.3"

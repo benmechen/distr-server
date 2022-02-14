@@ -2,30 +2,36 @@ syntax = "proto3";
 
 package co.mechen.distr.common.v1;
 
-import "google/protobuf/any.proto";
+message Value {
+    oneof value {
+        string string_value = 1;
+        double number_value = 2;
+        bool bool_value = 3;
+        Struct struct_value = 4;
+    };
+}
 
-message Property {
+message Struct {
+    map<string, Value> fields = 1;
+}
+
+message InputField {
     string name = 1;
+    optional string description = 2;
+    optional Value default_value= 3;
     enum Type {
         STRING = 0;
         NUMBER = 1;
         BOOLEAN = 2;
-        ENUM = 3;
+        STRUCT = 3;
     }
-    Type type = 2;
-    google.protobuf.Any value = 3;
+    Type type = 4;
+    map<string, InputField> fields = 5;
 }
 
 message Input {
     string name = 1;
-    optional string description = 2;
-    enum Type {
-        STRING = 0;
-        NUMBER = 1;
-        BOOLEAN = 2;
-        ENUM = 3;
-    }
-    Type type = 3;
+    Value value = 2;
 }
 
 enum Method {
@@ -40,5 +46,39 @@ message ReflectMethodRequest {
 
 message ReflectMethodResponse {
     Method method = 1;
-    repeated Input inputs = 2;
+    repeated InputField inputs = 2;
+}
+
+// API Credentials
+message AWSCredentials {
+    string id = 1;
+    string secret = 2;
+}
+
+message AzureCredentials {
+    string tenant_id = 1;
+    string client_id = 2;
+    string secret = 3;
+}
+
+message OtherCredentials {
+    map<string, string> values = 1;
+}
+
+message Credentials {
+    oneof credentials {
+        AWSCredentials aws = 1;
+        AzureCredentials azure = 2;
+        OtherCredentials other = 3;
+    }
+}
+
+// Methods
+message CreateRequest {
+    Credentials credentials = 1;
+    repeated Input payload = 2;
+}
+
+message CreateResponse {
+    bool status = 1;
 }
