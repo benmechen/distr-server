@@ -53,6 +53,7 @@ message ReflectMethodResponse {
 message AWSCredentials {
     string id = 1;
     string secret = 2;
+    string region = 3;
 }
 
 message AzureCredentials {

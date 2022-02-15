@@ -19,6 +19,10 @@ export class AWSCredentials implements IAWSCredentials {
 	@Field()
 	@Property()
 	secret: string;
+
+	@Field()
+	@Property()
+	region: string;
 }
 
 @InputType()

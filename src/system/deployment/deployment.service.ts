@@ -109,27 +109,24 @@ export class DeploymentService extends BaseService<
 		let azureCredentials: AzureCredentials | undefined;
 		let otherCredentials: OtherCredentials | undefined;
 		if (credentials.aws) {
-			awsCredentials = new AWSCredentials();
-			awsCredentials.id = credentials.aws.id;
-			awsCredentials.secret = this.cipherService.encrypt(
-				credentials.aws.secret,
-			);
+			awsCredentials = {
+				...credentials.aws,
+				secret: this.cipherService.encrypt(credentials.aws.secret),
+			};
 		}
 		if (credentials.azure) {
-			azureCredentials = new AzureCredentials();
-			azureCredentials.tenantId = credentials.azure.tenantId;
-			azureCredentials.clientId = credentials.azure.clientId;
-			azureCredentials.secret = this.cipherService.encrypt(
-				credentials.azure.secret,
-			);
+			azureCredentials = {
+				...credentials.azure,
+				secret: this.cipherService.encrypt(credentials.azure.secret),
+			};
 		}
 		if (credentials.other) {
-			otherCredentials = new OtherCredentials();
-			otherCredentials.values = {};
+			otherCredentials = { values: {} };
 			Object.entries(credentials.other.values).map(
 				async ([key, value]) => {
-					otherCredentials!.values[key] =
-						this.cipherService.encrypt(value);
+					otherCredentials!.values[key] = this.cipherService.encrypt(
+						value as string,
+					);
 				},
 			);
 		}
@@ -163,6 +160,7 @@ export class DeploymentService extends BaseService<
 				secret: this.cipherService.decrypt(
 					deployment.awsCredentials.secret,
 				),
+				region: deployment.awsCredentials.region,
 			};
 		if (deployment.azureCredentials)
 			azure = {

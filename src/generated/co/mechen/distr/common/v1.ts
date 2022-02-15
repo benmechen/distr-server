@@ -66,6 +66,7 @@ export interface ReflectMethodResponse {
 export interface AWSCredentials {
 	id: string;
 	secret: string;
+	region: string;
 }
 
 export interface AzureCredentials {
