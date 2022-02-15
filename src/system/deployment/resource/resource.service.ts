@@ -89,20 +89,26 @@ export class ResourceService extends BaseService<
 
 	async create(input: CreateResourceDTO, flush?: boolean): Promise<Resource> {
 		const resource = await super.create(input, flush);
-		await this.serviceService.connect(input.service);
-		// await connection.create({
-		// 	payload: [
-		// 		{
-		// 			name: 'Input 1',
-		// 			value: {
-		// 				stringValue: 'Hello',
-		// 				boolValue: undefined,
-		// 				numberValue: undefined,
-		// 				structValue: undefined,
-		// 			},
-		// 		},
-		// 	],
-		// });
+		const credentials = this.deploymentService.getCredentials(
+			input.deployment,
+		);
+		const connection = await this.serviceService.connect(
+			input.service,
+			credentials,
+		);
+		await connection.create({
+			payload: [
+				{
+					name: 'Input 1',
+					value: {
+						stringValue: 'Hello',
+						boolValue: undefined,
+						numberValue: undefined,
+						structValue: undefined,
+					},
+				},
+			],
+		});
 		return resource;
 	}
 }
