@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import {
 	CreateRequest,
 	CreateResponse,
+	Credentials,
 	ReflectMethodRequest,
 	ReflectMethodResponse,
 } from '../generated/co/mechen/distr/common/v1';
@@ -17,7 +18,11 @@ export interface Client extends grpc.Client {
 export class ServiceConnection implements ICommonService {
 	private client: Client;
 
-	constructor(From: grpc.ServiceClientConstructor, service: Service) {
+	constructor(
+		From: grpc.ServiceClientConstructor,
+		service: Service,
+		private readonly credentials: Credentials,
+	) {
 		this.client = new From(
 			service.serviceURL,
 			grpc.credentials.createInsecure(),
@@ -32,9 +37,14 @@ export class ServiceConnection implements ICommonService {
 		return reflect(input);
 	}
 
-	async create(input: CreateRequest): Promise<CreateResponse> {
+	async create(
+		input: Omit<CreateRequest, 'credentials'>,
+	): Promise<CreateResponse> {
 		const create = this.method<CreateRequest, CreateResponse>('create');
-		return create(input);
+		return create({
+			...input,
+			credentials: this.credentials,
+		});
 	}
 
 	private method<I, O>(name: string): (input: I) => Promise<O> {

@@ -1,5 +1,6 @@
 import {
 	Collection,
+	Embedded,
 	Entity,
 	IdentifiedReference,
 	ManyToOne,
@@ -10,6 +11,11 @@ import { Field, ObjectType } from '@nestjs/graphql';
 import { Node } from '../../common/base/base.entity';
 import { Paginated } from '../../common/base/paginated.entity';
 import { System } from '../system.entity';
+import {
+	AWSCredentials,
+	AzureCredentials,
+	OtherCredentials,
+} from './credentials.input';
 import { Resource } from './resource/resource.entity';
 
 @Entity()
@@ -24,6 +30,21 @@ export class Deployment extends Node {
 
 	@OneToMany(() => Resource, (resource) => resource.deployment)
 	resources: Collection<Resource>;
+
+	@Embedded(() => AWSCredentials, {
+		nullable: true,
+	})
+	awsCredentials?: AWSCredentials;
+
+	@Embedded(() => AzureCredentials, {
+		nullable: true,
+	})
+	azureCredentials?: AzureCredentials;
+
+	@Embedded(() => OtherCredentials, {
+		nullable: true,
+	})
+	otherCredentials?: OtherCredentials;
 }
 
 @ObjectType({ description: 'Paginated list of deployments' })

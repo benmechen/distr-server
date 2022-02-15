@@ -84,9 +84,9 @@ export interface OtherCredentials_ValuesEntry {
 }
 
 export interface Credentials {
-	aws: AWSCredentials | undefined;
-	azure: AzureCredentials | undefined;
-	other: OtherCredentials | undefined;
+	aws?: AWSCredentials | undefined;
+	azure?: AzureCredentials | undefined;
+	other?: OtherCredentials | undefined;
 }
 
 /** Methods */

@@ -66,11 +66,9 @@ message OtherCredentials {
 }
 
 message Credentials {
-    oneof credentials {
-        AWSCredentials aws = 1;
-        AzureCredentials azure = 2;
-        OtherCredentials other = 3;
-    }
+    optional AWSCredentials aws = 1;
+    optional AzureCredentials azure = 2;
+    optional OtherCredentials other = 3;
 }
 
 // Methods

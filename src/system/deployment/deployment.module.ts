@@ -8,10 +8,20 @@ import { DeploymentService } from './deployment.service';
 import { Deployment } from './deployment.entity';
 import { SystemModule } from '../system.module';
 import { ResourceModule } from './resource/resource.module';
+import {
+	AWSCredentials,
+	AzureCredentials,
+	OtherCredentials,
+} from './credentials.input';
 
 @Module({
 	imports: [
-		MikroOrmModule.forFeature([Deployment]),
+		MikroOrmModule.forFeature([
+			Deployment,
+			AWSCredentials,
+			AzureCredentials,
+			OtherCredentials,
+		]),
 		forwardRef(() => SystemModule),
 		ResourceModule,
 	],

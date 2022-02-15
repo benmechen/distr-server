@@ -16,6 +16,7 @@ import { CreateServiceDTO } from './create/create-service.dto';
 import { Service } from './service.entity';
 import { UpdateServiceDTO } from './update/update-service.dto';
 import { ServiceConnection } from './connection';
+import { Credentials } from '../generated/co/mechen/distr/common/v1';
 
 @Injectable()
 export class ServiceService extends BaseService<
@@ -117,7 +118,7 @@ export class ServiceService extends BaseService<
 	 * @param service Service
 	 * @returns Service connection
 	 */
-	async connect(service: Service) {
+	async connect(service: Service, credentials: Credentials) {
 		this.logger.debug('Connecting to service', { service });
 		const clientDef = await this.loadProto(
 			service.introspectionURL,
@@ -125,7 +126,11 @@ export class ServiceService extends BaseService<
 		);
 		const MainService = (clientDef[service.namespace] as grpc.GrpcObject)
 			.MainService as grpc.ServiceClientConstructor;
-		const connection = new ServiceConnection(MainService, service);
+		const connection = new ServiceConnection(
+			MainService,
+			service,
+			credentials,
+		);
 		this.logger.info('Connected to service', { connection });
 		return connection;
 	}
