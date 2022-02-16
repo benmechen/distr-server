@@ -97,17 +97,7 @@ export class ResourceService extends BaseService<
 			credentials,
 		);
 		await connection.create({
-			payload: [
-				{
-					name: 'Input 1',
-					value: {
-						stringValue: 'Hello',
-						boolValue: undefined,
-						numberValue: undefined,
-						structValue: undefined,
-					},
-				},
-			],
+			payload: input.input,
 		});
 		return resource;
 	}

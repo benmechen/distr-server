@@ -37,5 +37,6 @@ module.exports = {
 		'react/static-property-placement': 'off',
 		'no-template-curly-in-string': 'off',
 		'no-underscore-dangle': 'off',
+		'max-classes-per-file': 'off',
 	},
 };
