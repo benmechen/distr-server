@@ -26,7 +26,7 @@ export class ServiceService extends BaseService<
 > {
 	constructor(
 		@InjectRepository(Service)
-		serviceRepository: EntityRepository<Service>,
+		private readonly serviceRepository: EntityRepository<Service>,
 		helperService: HelperService,
 		configService: ConfigService,
 		private readonly httpService: HttpService,
@@ -37,6 +37,12 @@ export class ServiceService extends BaseService<
 			helperService,
 			configService,
 		);
+	}
+
+	async findAllUnblocked() {
+		return this.serviceRepository.find({
+			blocked: false,
+		});
 	}
 
 	async loadProto(
@@ -104,13 +110,40 @@ export class ServiceService extends BaseService<
 			'co.mechen.distr.common.v1.ReflectMethodRequest',
 			'co.mechen.distr.common.v1.ReflectMethodResponse',
 		);
+		const get = this.validateMethod(
+			mainService.methods.Get,
+			'co.mechen.distr.common.v1.GetRequest',
+			'co.mechen.distr.common.v1.GetResponse',
+		);
+		const status = this.validateMethod(
+			mainService.methods.Status,
+			'co.mechen.distr.common.v1.StatusRequest',
+			'co.mechen.distr.common.v1.StatusResponse',
+		);
 		const create = this.validateMethod(
 			mainService.methods.Create,
 			'co.mechen.distr.common.v1.CreateRequest',
 			'co.mechen.distr.common.v1.CreateResponse',
 		);
+		const update = this.validateMethod(
+			mainService.methods.Update,
+			'co.mechen.distr.common.v1.UpdateRequest',
+			'co.mechen.distr.common.v1.UpdateResponse',
+		);
+		const deleteMethod = this.validateMethod(
+			mainService.methods.Delete,
+			'co.mechen.distr.common.v1.DeleteRequest',
+			'co.mechen.distr.common.v1.DeleteResponse',
+		);
 
-		return !!reflect && !!create;
+		return (
+			!!reflect &&
+			!!get &&
+			!status &&
+			!!create &&
+			!!update &&
+			!!deleteMethod
+		);
 	}
 
 	/**
@@ -135,6 +168,21 @@ export class ServiceService extends BaseService<
 		return connection;
 	}
 
+	/**
+	 * Mark a service as blocked
+	 * @param service Service to block
+	 * @returns Updated service
+	 */
+	async block(service: Service, flush = true) {
+		return this.update(
+			service,
+			{
+				blocked: true,
+			},
+			flush,
+		);
+	}
+
 	private validateMethod(
 		method?: protobuf.IMethod,
 		input?: string,
@@ -146,9 +194,9 @@ export class ServiceService extends BaseService<
 		return method;
 	}
 
-	@Cron(CronExpression.EVERY_DAY_AT_NOON)
+	@Cron(CronExpression.EVERY_10_SECONDS)
 	async validateAllServices() {
-		const services = await this.findAll();
+		const services = await this.findAllUnblocked();
 		await Promise.all(
 			services.map(async (service) => {
 				const proto = await this.loadProto(
@@ -157,11 +205,11 @@ export class ServiceService extends BaseService<
 				);
 				const namespace = this.getNamespace(proto);
 				// TODO: Invalid
-				if (!namespace) return false;
+				if (!namespace) return this.block(service);
 
 				const valid = this.validate(proto, namespace);
 				// TODO: Invalid
-				if (!valid) return false;
+				if (!valid) return this.block(service);
 				return true;
 			}),
 		);

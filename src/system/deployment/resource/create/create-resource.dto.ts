@@ -1,6 +1,6 @@
 import { Service } from '../../../../service/service.entity';
 import { Deployment } from '../../deployment.entity';
-import { Input } from './create.input';
+import { Input } from '../input.type';
 
 export class CreateResourceDTO {
 	name: string;

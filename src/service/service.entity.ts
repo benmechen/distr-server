@@ -31,6 +31,10 @@ export class Service extends Node {
 	})
 	@Column()
 	introspectionURL: string;
+
+	@Field({ description: 'Is this service blocked?' })
+	@Column({ default: false })
+	blocked: boolean;
 }
 
 @ObjectType({ description: 'Paginated list of services' })
