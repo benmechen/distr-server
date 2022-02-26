@@ -194,7 +194,7 @@ export class ServiceService extends BaseService<
 		return method;
 	}
 
-	@Cron(CronExpression.EVERY_10_SECONDS)
+	@Cron(CronExpression.EVERY_HOUR)
 	async validateAllServices() {
 		const services = await this.findAllUnblocked();
 		await Promise.all(

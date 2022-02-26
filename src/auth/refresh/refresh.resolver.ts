@@ -45,9 +45,12 @@ export class RefreshResolver {
 		const isLocked = this.authService.isUserLocked(user);
 		if (isLocked) throw isLocked;
 
+		// Revoke current token to rotate
+		await this.authService.revokeToken(refreshToken);
+
 		// Token is valid, issue a new access token
 		return {
-			refreshToken,
+			refreshToken: await this.authService.createToken(user, 'refresh'),
 			accessToken: await this.authService.createToken(
 				{
 					id: payload.sub,
