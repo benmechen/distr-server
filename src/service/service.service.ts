@@ -16,7 +16,7 @@ import { CreateServiceDTO } from './create/create-service.dto';
 import { Service } from './service.entity';
 import { UpdateServiceDTO } from './update/update-service.dto';
 import { ServiceConnection } from './connection';
-import { Credentials } from '../generated/co/mechen/distr/common/v1';
+import { Credentials, Method } from '../generated/co/mechen/distr/common/v1';
 
 @Injectable()
 export class ServiceService extends BaseService<
@@ -151,7 +151,7 @@ export class ServiceService extends BaseService<
 	 * @param service Service
 	 * @returns Service connection
 	 */
-	async connect(service: Service, credentials: Credentials) {
+	async connect(service: Service, credentials?: Credentials) {
 		this.logger.debug('Connecting to service', { service });
 		const clientDef = await this.loadProto(
 			service.introspectionURL,
@@ -181,6 +181,14 @@ export class ServiceService extends BaseService<
 			},
 			flush,
 		);
+	}
+
+	async getInputs(service: Service) {
+		const connection = await this.connect(service);
+		const create = await connection.reflect({
+			method: Method.CREATE,
+		});
+		return create.inputs;
 	}
 
 	private validateMethod(
