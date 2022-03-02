@@ -4,11 +4,17 @@ import {
 	ManyToOne,
 	Property,
 } from '@mikro-orm/core';
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Node } from '../../../common/base/base.entity';
 import { Paginated } from '../../../common/base/paginated.entity';
+import { Status } from '../../../generated/co/mechen/distr/common/v1';
 import { Service } from '../../../service/service.entity';
 import { Deployment } from '../deployment.entity';
+
+registerEnumType(Status, {
+	name: 'Status',
+	description: 'Resource status',
+});
 
 @Entity()
 @ObjectType({ description: 'Single resource in a deployment' })

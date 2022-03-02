@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../../../common/api.error';
 import { BaseService } from '../../../common/base/base.service';
 import { HelperService } from '../../../common/helper/helper.service';
+import { Input } from '../../../generated/co/mechen/distr/common/v1';
 import { ServiceService } from '../../../service/service.service';
 import { User } from '../../../user/user.entity';
 import { Deployment } from '../deployment.entity';
@@ -76,6 +77,30 @@ export class ResourceService extends BaseService<
 		);
 	}
 
+	async getStatus(resource: Resource) {
+		const deployment = await resource.deployment.load();
+		const service = await resource.service.load();
+		const credentials = this.deploymentService.getCredentials(deployment);
+		const connection = await this.serviceService.connect(
+			service,
+			credentials,
+		);
+		return connection.status(resource);
+	}
+
+	async getDetails(resource: Resource) {
+		const deployment = await resource.deployment.load();
+		const service = await resource.service.load();
+		const credentials = this.deploymentService.getCredentials(deployment);
+		const connection = await this.serviceService.connect(
+			service,
+			credentials,
+		);
+		const status = await connection.status(resource);
+		console.log(status);
+		return connection.get(resource);
+	}
+
 	/**
 	 * Check if a user has access to a particular resource's deployment
 	 * @param user User
@@ -96,19 +121,70 @@ export class ResourceService extends BaseService<
 			input.service,
 			credentials,
 		);
-		await connection.create({
-			payload: [
-				{
-					name: 'Input 1',
-					value: {
-						stringValue: 'Hello',
-						boolValue: undefined,
-						numberValue: undefined,
-						structValue: undefined,
-					},
-				},
-			],
+		await connection.create(resource, {
+			payload: input.input,
 		});
+		return resource;
+	}
+
+	async update(
+		resource: Resource,
+		input: UpdateResourceDTO,
+		flush?: boolean,
+	): Promise<Resource> {
+		if (input.input) {
+			const deployment = await resource.deployment.load();
+			const service = await resource.service.load();
+			const credentials =
+				this.deploymentService.getCredentials(deployment);
+			const connection = await this.serviceService.connect(
+				service,
+				credentials,
+			);
+			await connection.update(resource, {
+				payload: input.input,
+			});
+		}
+
+		return super.update(resource, input, flush);
+	}
+
+	async delete(
+		entity: string,
+		flush?: boolean,
+		input?: Input[],
+	): Promise<Resource | null>;
+
+	async delete(
+		entity: Resource,
+		flush?: boolean,
+		input?: Input[],
+	): Promise<Resource | null>;
+
+	async delete(
+		entity: string | Resource,
+		flush?: boolean,
+		input?: Input[],
+	): Promise<Resource | null> {
+		let resource: Resource;
+		if (typeof entity === 'string')
+			resource = await this.findByIDOrFail(entity);
+		else resource = entity;
+
+		const deployment = await resource.deployment.load();
+		const service = await resource.service.load();
+		const credentials = this.deploymentService.getCredentials(deployment);
+		const connection = await this.serviceService.connect(
+			service,
+			credentials,
+		);
+		await connection.delete(resource, {
+			payload: input,
+		});
+
+		this.repository.remove(resource);
+		if (flush) await this.repository.flush();
+
 		return resource;
 	}
 }

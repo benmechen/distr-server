@@ -15,18 +15,19 @@ message Struct {
     map<string, Value> fields = 1;
 }
 
-message InputField {
+message Field {
     string name = 1;
     optional string description = 2;
-    optional Value default_value= 3;
+    optional Value default_value = 3;
+    bool required = 4;
     enum Type {
         STRING = 0;
         NUMBER = 1;
         BOOLEAN = 2;
         STRUCT = 3;
     }
-    Type type = 4;
-    map<string, InputField> fields = 5;
+    Type type = 5;
+    map<string, Field> fields = 6;
 }
 
 message Input {
@@ -34,10 +35,16 @@ message Input {
     Value value = 2;
 }
 
+message Property {
+    string name = 1;
+    Value value = 2;
+}
+
 enum Method {
-    CREATE = 0;
-    UPDATE = 1;
-    DELETE = 2;
+    GET = 0;
+    CREATE = 1;
+    UPDATE = 2;
+    DELETE = 3;
 }
 
 message ReflectMethodRequest {
@@ -46,7 +53,8 @@ message ReflectMethodRequest {
 
 message ReflectMethodResponse {
     Method method = 1;
-    repeated InputField inputs = 2;
+    repeated Field inputs = 2;
+    repeated Field outputs = 3;
 }
 
 // API Credentials
@@ -72,12 +80,62 @@ message Credentials {
     optional OtherCredentials other = 3;
 }
 
-// Methods
+// METHODS
+// Get
+message GetRequest {
+    Credentials credentials = 1;
+    string resource_id = 2;
+}
+
+message GetResponse {
+    repeated Property properties = 2;
+}
+
+// Status
+message StatusRequest {
+    Credentials credentials = 1;
+    string resource_id = 2;
+}
+
+enum Status {
+    HEALTHY = 0;
+    DEGRADED = 1;
+    DOWN = 2;
+}
+
+message StatusResponse {
+    Status status = 1;
+}
+
+// Create
 message CreateRequest {
     Credentials credentials = 1;
-    repeated Input payload = 2;
+    string resource_id = 2;
+    repeated Input payload = 3;
 }
 
 message CreateResponse {
+    bool status = 1;
+}
+
+// Update
+message UpdateRequest {
+    Credentials credentials = 1;
+    string resource_id = 2;
+    repeated Input payload = 3;
+}
+
+message UpdateResponse {
+    bool status = 1;
+}
+
+// Delete
+message DeleteRequest {
+    Credentials credentials = 1;
+    string resource_id = 2;
+    repeated Input payload = 3;
+}
+
+message DeleteResponse {
     bool status = 1;
 }

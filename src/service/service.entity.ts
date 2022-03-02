@@ -1,8 +1,9 @@
 // eslint-disable-next-line max-classes-per-file
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Entity, Property as Column } from '@mikro-orm/core';
+import { Entity, ManyToOne, Property as Column } from '@mikro-orm/core';
 import { Node } from '../common/base/base.entity';
 import { Paginated } from '../common/base/paginated.entity';
+import { Organisation } from '../organisation/organisation.entity';
 
 @Entity()
 @ObjectType({ description: 'Service model' })
@@ -18,6 +19,9 @@ export class Service extends Node {
 	@Column()
 	namespace: string;
 
+	@ManyToOne(() => Organisation)
+	author: Organisation;
+
 	@Field({
 		description:
 			'Location at which the service is hosted and gRPC messages can be sent',
@@ -31,6 +35,10 @@ export class Service extends Node {
 	})
 	@Column()
 	introspectionURL: string;
+
+	@Field({ description: 'Is this service blocked?' })
+	@Column({ default: false })
+	blocked: boolean;
 }
 
 @ObjectType({ description: 'Paginated list of services' })

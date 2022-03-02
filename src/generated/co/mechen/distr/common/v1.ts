@@ -5,9 +5,17 @@ import _m0 from 'protobufjs/minimal';
 export const protobufPackage = 'co.mechen.distr.common.v1';
 
 export enum Method {
-	CREATE = 0,
-	UPDATE = 1,
-	DELETE = 2,
+	GET = 0,
+	CREATE = 1,
+	UPDATE = 2,
+	DELETE = 3,
+	UNRECOGNIZED = -1,
+}
+
+export enum Status {
+	HEALTHY = 0,
+	DEGRADED = 1,
+	DOWN = 2,
 	UNRECOGNIZED = -1,
 }
 
@@ -27,15 +35,16 @@ export interface Struct_FieldsEntry {
 	value: Value | undefined;
 }
 
-export interface InputField {
+export interface Field {
 	name: string;
 	description?: string | undefined;
 	defaultValue?: Value | undefined;
-	type: InputField_Type;
-	fields: { [key: string]: InputField };
+	required: boolean;
+	type: Field_Type;
+	fields: { [key: string]: Field };
 }
 
-export enum InputField_Type {
+export enum Field_Type {
 	STRING = 0,
 	NUMBER = 1,
 	BOOLEAN = 2,
@@ -43,12 +52,17 @@ export enum InputField_Type {
 	UNRECOGNIZED = -1,
 }
 
-export interface InputField_FieldsEntry {
+export interface Field_FieldsEntry {
 	key: string;
-	value: InputField | undefined;
+	value: Field | undefined;
 }
 
 export interface Input {
+	name: string;
+	value: Value | undefined;
+}
+
+export interface Property {
 	name: string;
 	value: Value | undefined;
 }
@@ -59,7 +73,8 @@ export interface ReflectMethodRequest {
 
 export interface ReflectMethodResponse {
 	method: Method;
-	inputs: InputField[];
+	inputs: Field[];
+	outputs: Field[];
 }
 
 /** API Credentials */
@@ -90,13 +105,59 @@ export interface Credentials {
 	other?: OtherCredentials | undefined;
 }
 
-/** Methods */
+/**
+ * METHODS
+ * Get
+ */
+export interface GetRequest {
+	credentials: Credentials | undefined;
+	resourceId: string;
+}
+
+export interface GetResponse {
+	properties: Property[];
+}
+
+/** Status */
+export interface StatusRequest {
+	credentials: Credentials | undefined;
+	resourceId: string;
+}
+
+export interface StatusResponse {
+	status: Status;
+}
+
+/** Create */
 export interface CreateRequest {
 	credentials: Credentials | undefined;
+	resourceId: string;
 	payload: Input[];
 }
 
 export interface CreateResponse {
+	status: boolean;
+}
+
+/** Update */
+export interface UpdateRequest {
+	credentials: Credentials | undefined;
+	resourceId: string;
+	payload: Input[];
+}
+
+export interface UpdateResponse {
+	status: boolean;
+}
+
+/** Delete */
+export interface DeleteRequest {
+	credentials: Credentials | undefined;
+	resourceId: string;
+	payload: Input[];
+}
+
+export interface DeleteResponse {
 	status: boolean;
 }
 

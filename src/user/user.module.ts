@@ -10,6 +10,7 @@ import { AuthModule } from '../auth/auth.module';
 import { UserTimeoutResolver } from './timeout/timeout.resolver';
 import { CodeModule } from '../auth/code/code.module';
 import { OrganisationModule } from '../organisation/organisation.module';
+import { ExistsResolver } from './exists/exists.resolver';
 
 @Module({
 	imports: [
@@ -26,6 +27,7 @@ import { OrganisationModule } from '../organisation/organisation.module';
 		UserCreateResolver,
 		UserUpdateResolver,
 		UserDeleteResolver,
+		ExistsResolver,
 	],
 	exports: [UserResolver, UserService],
 })

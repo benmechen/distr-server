@@ -3,10 +3,11 @@ import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ServiceService } from './service.service';
 import { CreateResolver } from './create/create.resolver';
 import { Service } from './service.entity';
+import { ServiceResolver } from './service.resolver';
 
 @Module({
 	imports: [MikroOrmModule.forFeature([Service]), HttpModule],
-	providers: [ServiceService, CreateResolver],
+	providers: [ServiceService, CreateResolver, ServiceResolver],
 	exports: [ServiceService],
 })
 export class ServiceModule {}
