@@ -13,6 +13,7 @@ import { Deployment } from '../deployment.entity';
 import { Property } from './property.type';
 import { Resource } from './resource.entity';
 import { ResourceService } from './resource.service';
+import { Limit, Usage } from './usage.type';
 
 @Resolver(() => Resource)
 export class ResourceResolver {
@@ -25,14 +26,31 @@ export class ResourceResolver {
 
 	@ResolveField(() => Status)
 	async status(@Parent() resource: Resource): Promise<Status> {
-		const status = await this.resourceService.getStatus(resource);
-		return status.status;
+		try {
+			const status = await this.resourceService.getStatus(resource);
+			return status.status;
+		} catch (err) {
+			return Status.DOWN;
+		}
+	}
+
+	@ResolveField(() => Usage)
+	async usage(): Promise<Usage> {
+		return {
+			type: Limit.LIMITED,
+			limit: 100,
+			current: Math.random() * 100,
+		};
 	}
 
 	@ResolveField(() => [Property])
 	async details(@Parent() resource: Resource): Promise<Property[]> {
-		const details = await this.resourceService.getDetails(resource);
-		return details.properties;
+		try {
+			const details = await this.resourceService.getDetails(resource);
+			return details.properties;
+		} catch (err) {
+			return [];
+		}
 	}
 
 	// Queries

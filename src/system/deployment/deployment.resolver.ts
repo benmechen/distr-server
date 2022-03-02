@@ -7,6 +7,7 @@ import {
 	Resolver,
 } from '@nestjs/graphql';
 import { Auth, GQLUser } from '../../common/decorators';
+import { StatusOverview } from '../../common/status-overview.type';
 import { User } from '../../user/user.entity';
 import { System } from '../system.entity';
 import { Deployment } from './deployment.entity';
@@ -32,6 +33,14 @@ export class DeploymentResolver {
 			deployment,
 		);
 		return resources;
+	}
+
+	@ResolveField(() => StatusOverview)
+	async status(): Promise<StatusOverview> {
+		return {
+			healthy: 2,
+			unhealthy: 0,
+		};
 	}
 
 	@Auth()
