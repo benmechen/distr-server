@@ -24,13 +24,19 @@ export interface Client extends grpc.Client {
 }
 /* eslint-enable @typescript-eslint/ban-types */
 
+class MissingCredentialsException extends Error {
+	constructor(service: Service) {
+		super(`Missing credentials for ${service.name} service`);
+	}
+}
+
 export class ServiceConnection implements ICommonService {
 	private client: Client;
 
 	constructor(
 		From: grpc.ServiceClientConstructor,
-		service: Service,
-		private readonly credentials: Credentials,
+		private readonly service: Service,
+		private readonly credentials?: Credentials,
 	) {
 		this.client = new From(
 			service.serviceURL,
@@ -48,6 +54,8 @@ export class ServiceConnection implements ICommonService {
 
 	async get(resource: Resource): Promise<GetResponse> {
 		const get = this.method<GetRequest, GetResponse>('get');
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
 		return get({
 			credentials: this.credentials,
 			resourceId: resource.id,
@@ -56,6 +64,8 @@ export class ServiceConnection implements ICommonService {
 
 	async status(resource: Resource): Promise<StatusResponse> {
 		const status = this.method<StatusRequest, StatusResponse>('status');
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
 		return status({
 			credentials: this.credentials,
 			resourceId: resource.id,
@@ -67,6 +77,8 @@ export class ServiceConnection implements ICommonService {
 		input: Omit<CreateRequest, 'credentials' | 'resourceId'>,
 	): Promise<CreateResponse> {
 		const create = this.method<CreateRequest, CreateResponse>('create');
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
 		return create({
 			...input,
 			credentials: this.credentials,
@@ -79,6 +91,8 @@ export class ServiceConnection implements ICommonService {
 		input: Omit<UpdateRequest, 'credentials' | 'resourceId'>,
 	): Promise<UpdateResponse> {
 		const update = this.method<UpdateRequest, UpdateResponse>('update');
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
 		return update({
 			...input,
 			credentials: this.credentials,
@@ -93,6 +107,8 @@ export class ServiceConnection implements ICommonService {
 		const deleteMethod = this.method<DeleteRequest, DeleteResponse>(
 			'delete',
 		);
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
 		return deleteMethod({
 			credentials: this.credentials,
 			resourceId: resource.id,
