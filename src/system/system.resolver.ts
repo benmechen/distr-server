@@ -9,6 +9,7 @@ import {
 import { ConnectionArgs } from '../common/base/connection.args';
 import { Auth, GQLUser } from '../common/decorators';
 import { HelperService } from '../common/helper/helper.service';
+import { StatusOverview } from '../common/status-overview.type';
 import { Organisation } from '../organisation/organisation.entity';
 import { User } from '../user/user.entity';
 import { Deployment } from './deployment/deployment.entity';
@@ -33,6 +34,14 @@ export class SystemResolver {
 	async deployments(@Parent() system: System) {
 		const [deployments] = await this.deploymentService.findBySystem(system);
 		return deployments;
+	}
+
+	@ResolveField(() => StatusOverview)
+	async status(): Promise<StatusOverview> {
+		return {
+			healthy: 2,
+			unhealthy: 0,
+		};
 	}
 
 	@Auth()
