@@ -1,4 +1,4 @@
-import { EntityRepository } from '@mikro-orm/mysql';
+import { EntityManager, EntityRepository } from '@mikro-orm/mysql';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { HttpService, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +17,9 @@ import { Service } from './service.entity';
 import { UpdateServiceDTO } from './update/update-service.dto';
 import { ServiceConnection } from './connection';
 import { Credentials, Method } from '../generated/co/mechen/distr/common/v1';
+import { ConnectionFilter } from '../common/base/connection.filter';
+import { ConnectionSort } from '../common/base/connection.sort';
+import { SearchQuery } from '../common/search.builder';
 
 @Injectable()
 export class ServiceService extends BaseService<
@@ -27,6 +30,7 @@ export class ServiceService extends BaseService<
 	constructor(
 		@InjectRepository(Service)
 		private readonly serviceRepository: EntityRepository<Service>,
+		private readonly entityManager: EntityManager,
 		helperService: HelperService,
 		configService: ConfigService,
 		private readonly httpService: HttpService,
@@ -43,6 +47,40 @@ export class ServiceService extends BaseService<
 		return this.serviceRepository.find({
 			blocked: false,
 		});
+	}
+
+	async search(
+		take?: number,
+		skip?: number,
+		sort?: ConnectionSort<Service>,
+		filter?: ConnectionFilter,
+	): Promise<[Service[], number]> {
+		const query = new SearchQuery<Service>(this.entityManager, Service)
+			.order(sort)
+			.filter(filter?.fields)
+			.search(
+				[
+					{
+						field: 'id',
+						type: 'id',
+					},
+					{
+						field: 'name',
+					},
+					{
+						field: 'summary',
+					},
+					{
+						field: 'description',
+					},
+					{
+						field: 'platform',
+					},
+				],
+				filter?.query,
+			);
+
+		return query.execute(take, skip);
 	}
 
 	async loadProto(
@@ -139,7 +177,7 @@ export class ServiceService extends BaseService<
 		return (
 			!!reflect &&
 			!!get &&
-			!status &&
+			!!status &&
 			!!create &&
 			!!update &&
 			!!deleteMethod

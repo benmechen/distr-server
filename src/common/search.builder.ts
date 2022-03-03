@@ -1,19 +1,20 @@
-import { Brackets, Repository, SelectQueryBuilder } from 'typeorm';
+import { EntityName } from '@mikro-orm/core';
+import { EntityManager, Knex } from '@mikro-orm/mysql';
 import { Node } from './base/base.entity';
 import { ConnectionFieldFilter } from './base/connection.filter';
 import { ConnectionSort } from './base/connection.sort';
 import { HelperService } from './helper/helper.service';
 
 export class SearchQuery<T extends Node> {
-	private queryBuilder: SelectQueryBuilder<T>;
+	private queryBuilder: Knex.QueryBuilder<T, T>;
 
 	private helperService = new HelperService();
 
-	private resource: string;
-
-	constructor(repository: Repository<T>) {
-		this.resource = repository.metadata.name.toLowerCase();
-		this.queryBuilder = repository.createQueryBuilder(this.resource);
+	constructor(
+		private readonly manager: EntityManager,
+		private readonly entity: EntityName<T>,
+	) {
+		this.queryBuilder = manager.createQueryBuilder(entity).getKnexQuery();
 	}
 
 	/**
@@ -21,17 +22,23 @@ export class SearchQuery<T extends Node> {
 	 * @param take Number of items to take
 	 * @param skip Number of items to skip
 	 */
-	execute(take?: number, skip?: number): Promise<[T[], number]> {
-		if (take != null) this.queryBuilder.take(take);
-		if (skip != null) this.queryBuilder.skip(skip);
+	async execute(take?: number, skip?: number): Promise<[T[], number]> {
+		if (take != null) this.queryBuilder.limit(take);
+		if (skip != null) this.queryBuilder.offset(skip);
 
-		return this.queryBuilder.getManyAndCount();
+		const results = await this.manager.execute(this.queryBuilder);
+		const entities = results.map((e) => this.manager.map(this.entity, e));
+		this.queryBuilder.count();
+		const counts = await this.manager.execute(this.queryBuilder);
+		const count = counts[0];
+
+		return [entities, count ? +count : 0];
 	}
 
 	/**
 	 * Get the underlying query builder
 	 */
-	getQueryBuilder(): SelectQueryBuilder<T> {
+	getQueryBuilder(): Knex.QueryBuilder<T, T> {
 		return this.queryBuilder;
 	}
 
@@ -41,10 +48,7 @@ export class SearchQuery<T extends Node> {
 	 * @default sort Sorts by `created` field in descending order by default
 	 */
 	order(sort?: ConnectionSort<T>): SearchQuery<T> {
-		this.queryBuilder.orderBy(
-			`${this.resource}.${sort?.field ?? 'created'}`,
-			(sort?.order.toString() as any | undefined) ?? 'DESC',
-		);
+		this.queryBuilder.orderBy(`${sort?.field ?? 'created'}`, sort?.order);
 		return this;
 	}
 
@@ -53,20 +57,12 @@ export class SearchQuery<T extends Node> {
 	 * @param fields Connection Field Filters
 	 */
 	filter(fields?: ConnectionFieldFilter[]): SearchQuery<T> {
-		this.queryBuilder.where(
-			new Brackets((subQb) => {
-				fields?.forEach((item, index) => {
-					const id = `value${index}`;
-					const params: Record<string, any> = {};
-					params[id] = item.value;
+		if (!fields) return this;
 
-					subQb.andWhere(
-						`${this.resource}.${item.field} In(:...${id})`,
-						params,
-					);
-				});
-			}),
+		fields.forEach((item) =>
+			this.queryBuilder.andWhere(`${item.field} = ?`, [item.value]),
 		);
+
 		return this;
 	}
 
@@ -81,30 +77,29 @@ export class SearchQuery<T extends Node> {
 	): SearchQuery<T> {
 		if (query && query.trim().length > 0) {
 			const expr = `%${query}%`;
-			this.queryBuilder.andWhere(
-				new Brackets((subQb) =>
-					fields.forEach((item) => {
-						if (item.type === 'id') {
-							// Don't search if not ID
-							if (this.helperService.isValidID(query))
-								subQb.orWhere(
-									`"${item.parent ?? this.resource}"."${
-										item.field
-									}" = :query`,
-									{ query },
-								);
-						} else {
-							// Otherwise search by text
-							subQb.orWhere(
-								`"${item.parent ?? this.resource}"."${
+			this.queryBuilder.andWhere((builder) => {
+				fields.forEach((item) => {
+					if (item.type === 'id') {
+						// Don't search if not ID
+						if (this.helperService.isValidID(query))
+							builder.orWhere(
+								`${item.parent ? `${item.parent}".` : ''}${
 									item.field
-								}" ILIKE :query`,
-								{ query: expr },
+								}`,
+								expr,
 							);
-						}
-					}),
-				),
-			);
+					} else {
+						// Otherwise search by text
+						builder.orWhere(
+							`${item.parent ? `${item.parent}".` : ''}${
+								item.field
+							}`,
+							'LIKE',
+							expr,
+						);
+					}
+				});
+			});
 		}
 
 		return this;
