@@ -34,7 +34,7 @@ export class Service extends Node {
 	@Enum(() => Platform)
 	platform: Platform = Platform.Other;
 
-	@Field({ description: 'Is the service verified by Distr?' })
+	@Field(() => Boolean, { description: 'Is the service verified by Distr?' })
 	@Column()
 	verified = false;
 
