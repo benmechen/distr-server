@@ -12,7 +12,7 @@ export class CreateResolver {
 	constructor(private readonly serviceService: ServiceService) {}
 
 	@Auth()
-	@Mutation(() => Service)
+	@Mutation(() => Service, { name: 'serviceCreate' })
 	async serviceCreate(
 		@GQLUser() user: User,
 		@Args('input') input: ServiceCreateInput,

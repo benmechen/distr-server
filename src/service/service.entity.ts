@@ -1,9 +1,16 @@
 // eslint-disable-next-line max-classes-per-file
 import { Field, ObjectType } from '@nestjs/graphql';
-import { Entity, ManyToOne, Property as Column } from '@mikro-orm/core';
+import {
+	Entity,
+	Enum,
+	IdentifiedReference,
+	ManyToOne,
+	Property as Column,
+} from '@mikro-orm/core';
 import { Node } from '../common/base/base.entity';
 import { Paginated } from '../common/base/paginated.entity';
 import { Organisation } from '../organisation/organisation.entity';
+import { Platform } from '../common/platform.enum';
 
 @Entity()
 @ObjectType({ description: 'Service model' })
@@ -12,15 +19,30 @@ export class Service extends Node {
 	@Column()
 	name: string;
 
-	@Field({ description: 'Service description' })
+	@Field({ description: 'Brief summary of the service' })
 	@Column()
+	summary: string;
+
+	@Field({ description: 'Service description' })
+	@Column({
+		columnType: 'text',
+		length: 65535,
+	})
 	description: string;
+
+	@Field(() => Platform, { description: 'Platform the service operates on' })
+	@Enum(() => Platform)
+	platform: Platform = Platform.Other;
+
+	@Field(() => Boolean, { description: 'Is the service verified by Distr?' })
+	@Column()
+	verified = false;
 
 	@Column()
 	namespace: string;
 
-	@ManyToOne(() => Organisation)
-	author: Organisation;
+	@ManyToOne(() => Organisation, { wrappedReference: true })
+	author: IdentifiedReference<Organisation>;
 
 	@Field({
 		description:
@@ -35,6 +57,18 @@ export class Service extends Node {
 	})
 	@Column()
 	introspectionURL: string;
+
+	@Field({
+		description: 'Link to relevant documentation for the service',
+	})
+	@Column()
+	documentationURL: string;
+
+	@Field({
+		description: 'Link to public source code',
+	})
+	@Column()
+	sourceCodeURL: string;
 
 	@Field({ description: 'Is this service blocked?' })
 	@Column({ default: false })
