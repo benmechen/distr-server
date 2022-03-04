@@ -1,5 +1,6 @@
 import { Type } from '@nestjs/common';
 import { Resolver, Query, Args, Mutation, ID } from '@nestjs/graphql';
+import { RequiredEntityData } from '@mikro-orm/core';
 import { APIError, APIErrorCode } from '../api.error';
 import { UserRole } from '../../user/user.entity';
 import { Auth } from '../decorators';
@@ -24,7 +25,7 @@ interface IBaseResolverOptions<
 	C extends typeof Paginated,
 	RC extends Type<unknown>,
 	RU extends Type<unknown>,
-	BSC extends Type<unknown>,
+	BSC extends RequiredEntityData<T>,
 	BSU extends Type<unknown>,
 > {
 	entity: {
@@ -68,7 +69,7 @@ export const BaseResolver = <
 	C extends typeof Paginated,
 	RC extends Type<unknown>,
 	RU extends Type<unknown>,
-	BSC extends Type<unknown>,
+	BSC extends RequiredEntityData<T>,
 	BSU extends Type<unknown>,
 >({
 	entity,

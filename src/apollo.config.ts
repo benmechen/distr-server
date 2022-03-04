@@ -1,5 +1,7 @@
+import { ApolloDriverConfig } from '@nestjs/apollo';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GqlModuleOptions } from '@nestjs/graphql';
+import { GqlOptionsFactory } from '@nestjs/graphql';
 import { Request, Response } from 'express';
 import { GraphQLError, GraphQLFormattedError } from 'graphql';
 import { APIErrorCode } from './common/api.error';
@@ -54,22 +56,25 @@ export interface APIContext {
 	res: Response;
 }
 
-export const apolloConfig = (
-	configService: ConfigService,
-): GqlModuleOptions => {
-	const corsOriginString = configService.get<string>('FRONTEND') ?? '';
-	const corsOrigins = corsOriginString.split(',') ?? [];
+@Injectable()
+export class GqlConfigService implements GqlOptionsFactory {
+	constructor(private readonly configService: ConfigService) {}
 
-	return {
-		autoSchemaFile: true,
-		sortSchema: true,
-		context: ({ req, res }): APIContext => ({ req, res }),
-		formatError,
-		introspection: true,
-		cors: {
-			credentials: true,
-			origin: corsOrigins,
-		},
-		installSubscriptionHandlers: true,
-	};
-};
+	createGqlOptions(): ApolloDriverConfig {
+		const corsOriginString =
+			this.configService.get<string>('FRONTEND') ?? '';
+		const corsOrigins = corsOriginString.split(',') ?? [];
+
+		return {
+			autoSchemaFile: true,
+			sortSchema: true,
+			formatError,
+			introspection: true,
+			cors: {
+				credentials: true,
+				origin: corsOrigins,
+			},
+			installSubscriptionHandlers: true,
+		};
+	}
+}

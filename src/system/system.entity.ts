@@ -3,10 +3,10 @@ import {
 	Entity,
 	IdentifiedReference,
 	ManyToOne,
+	OneToMany,
 	Property,
 } from '@mikro-orm/core';
 import { Field, ObjectType } from '@nestjs/graphql';
-import { OneToMany } from 'typeorm';
 import { Node } from '../common/base/base.entity';
 import { Paginated } from '../common/base/paginated.entity';
 import { Organisation } from '../organisation/organisation.entity';

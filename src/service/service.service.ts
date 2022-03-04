@@ -10,6 +10,7 @@ import { writeFile } from 'fs/promises';
 import { v4 as uuid } from 'uuid';
 import * as os from 'os';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { lastValueFrom } from 'rxjs';
 import { BaseService } from '../common/base/base.service';
 import { HelperService } from '../common/helper/helper.service';
 import { CreateServiceDTO } from './create/create-service.dto';
@@ -99,7 +100,7 @@ export class ServiceService extends BaseService<
 		returnType: 'json' | 'grpc',
 		service?: Service,
 	) {
-		const body = await this.httpService.get(url).toPromise();
+		const body = await lastValueFrom(this.httpService.get(url));
 
 		if (returnType === 'json') {
 			const root = protobuf.parse(body.data);

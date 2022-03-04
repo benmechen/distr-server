@@ -5,6 +5,7 @@ import {
 	Enum,
 	IdentifiedReference,
 	ManyToOne,
+	OptionalProps,
 	Property as Column,
 } from '@mikro-orm/core';
 import { Node } from '../common/base/base.entity';
@@ -73,6 +74,8 @@ export class Service extends Node {
 	@Field({ description: 'Is this service blocked?' })
 	@Column({ default: false })
 	blocked: boolean;
+
+	override [OptionalProps]?: 'created' | 'updated' | 'blocked' | 'verified';
 }
 
 @ObjectType({ description: 'Paginated list of services' })

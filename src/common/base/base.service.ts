@@ -1,4 +1,9 @@
-import { EntityRepository, FilterQuery, wrap } from '@mikro-orm/core';
+import {
+	EntityRepository,
+	FilterQuery,
+	RequiredEntityData,
+	wrap,
+} from '@mikro-orm/core';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'winston';
 import { APIError, APIErrorCode } from '../api.error';
@@ -8,7 +13,7 @@ import { Node } from './base.entity';
 import { ConnectionFilter } from './connection.filter';
 import { ConnectionSort } from './connection.sort';
 
-export interface IBaseService<T, C, U> {
+export interface IBaseService<T, C extends RequiredEntityData<T>, U> {
 	findByID(id: string): Promise<T | null>;
 	findByIDOrFail(id: string): Promise<T>;
 	findByIDs(ids: string[]): Promise<T[]>;
@@ -24,7 +29,7 @@ export interface IBaseService<T, C, U> {
 	delete(entity: string | T): Promise<T | null>;
 }
 
-export class BaseService<T extends Node, C, U>
+export class BaseService<T extends Node, C extends RequiredEntityData<T>, U>
 	implements IBaseService<T, C, U>
 {
 	protected logger: Logger;

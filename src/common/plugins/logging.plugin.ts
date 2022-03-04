@@ -1,16 +1,15 @@
 import { ConfigService } from '@nestjs/config';
-import { Plugin } from '@nestjs/graphql';
+import { Plugin } from '@nestjs/apollo';
 import {
 	ApolloServerPlugin,
 	GraphQLRequestContext,
 	GraphQLRequestListener,
 } from 'apollo-server-plugin-base';
 import { Logger } from 'winston';
-import { APIContext } from '../../apollo.config';
 import { LoggerFactory } from '../logger';
 
 @Plugin()
-export class LoggingPlugin implements ApolloServerPlugin<APIContext> {
+export class LoggingPlugin implements ApolloServerPlugin {
 	private logger: Logger;
 
 	constructor(configService: ConfigService) {
@@ -19,12 +18,12 @@ export class LoggingPlugin implements ApolloServerPlugin<APIContext> {
 		);
 	}
 
-	requestDidStart(
-		context: GraphQLRequestContext<APIContext>,
-	): GraphQLRequestListener {
+	async requestDidStart(
+		context: GraphQLRequestContext,
+	): Promise<GraphQLRequestListener> {
 		const start = Date.now();
 		return {
-			willSendResponse: () => {
+			willSendResponse: async () => {
 				if (context.operationName === 'IntrospectionQuery') return;
 
 				this.logger.info(context.operationName ?? 'Processed request', {

@@ -199,14 +199,16 @@ export class DeploymentService extends BaseService<
 				? await this.findByIDOrFail(entity)
 				: entity;
 
-		await deployment.resources.init();
-		await Promise.all(
-			deployment.resources
-				.getItems()
-				.map((resource) =>
-					this.resourceService.delete(resource, false),
-				),
-		);
+		if (deployment.resources) {
+			await deployment.resources.init();
+			await Promise.all(
+				deployment.resources
+					.getItems()
+					.map((resource) =>
+						this.resourceService.delete(resource, false),
+					),
+			);
+		}
 
 		deployment = await super.delete(entity, false);
 

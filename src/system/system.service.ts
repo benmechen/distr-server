@@ -97,14 +97,16 @@ export class SystemService extends BaseService<
 				? await this.findByIDOrFail(entity)
 				: entity;
 
-		await system.deployments.init();
-		await Promise.all(
-			system.deployments
-				.getItems()
-				.map((deployment) =>
-					this.deploymentService.delete(deployment, false),
-				),
-		);
+		if (system.deployments) {
+			await system.deployments.init();
+			await Promise.all(
+				system.deployments
+					.getItems()
+					.map((deployment) =>
+						this.deploymentService.delete(deployment, false),
+					),
+			);
+		}
 
 		system = await super.delete(entity, false);
 

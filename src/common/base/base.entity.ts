@@ -1,4 +1,4 @@
-import { PrimaryKey, Property } from '@mikro-orm/core';
+import { OptionalProps, PrimaryKey, Property } from '@mikro-orm/core';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { v4 } from 'uuid';
 
@@ -17,6 +17,8 @@ export abstract class Node {
 	@Field(() => Date, { description: 'Date the object was last updated' })
 	@Property({ onUpdate: () => new Date() })
 	updated: Date = new Date();
+
+	[OptionalProps]?: 'created' | 'updated' | string;
 
 	/**
 	 * Create a new entity

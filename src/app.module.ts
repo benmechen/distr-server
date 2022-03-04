@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
 import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { MikroOrmModule } from '@mikro-orm/nestjs';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TerminusModule } from '@nestjs/terminus';
@@ -8,7 +9,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NotificationModule } from '@chelseaapps/notification';
 import { WinstonModule } from 'nest-winston';
 import { UserModule } from './user/user.module';
-import { apolloConfig } from './apollo.config';
+import { GqlConfigService } from './apollo.config';
 import { StatusController } from './status/status.controller';
 import { AuthModule } from './auth/auth.module';
 import { ArticleModule } from './article/article.module';
@@ -33,10 +34,10 @@ import { ServiceModule } from './service/service.module';
 		ConfigModule.forRoot({
 			isGlobal: true,
 		}),
-		GraphQLModule.forRootAsync({
+		GraphQLModule.forRootAsync<ApolloDriverConfig>({
 			imports: [ConfigModule],
-			useFactory: async (configService: ConfigService) =>
-				apolloConfig(configService),
+			driver: ApolloDriver,
+			useClass: GqlConfigService,
 			inject: [ConfigService],
 		}),
 		// Main DB

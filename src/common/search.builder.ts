@@ -1,4 +1,4 @@
-import { EntityName } from '@mikro-orm/core';
+import { EntityData, EntityName } from '@mikro-orm/core';
 import { EntityManager, Knex } from '@mikro-orm/mysql';
 import { Node } from './base/base.entity';
 import { ConnectionFieldFilter } from './base/connection.filter';
@@ -27,7 +27,9 @@ export class SearchQuery<T extends Node> {
 		if (skip != null) this.queryBuilder.offset(skip);
 
 		const results = await this.manager.execute(this.queryBuilder);
-		const entities = results.map((e) => this.manager.map(this.entity, e));
+		const entities = results.map((e) =>
+			this.manager.map(this.entity, e as EntityData<T>),
+		);
 		this.queryBuilder.count();
 		const counts = await this.manager.execute(this.queryBuilder);
 		const count = counts[0];
