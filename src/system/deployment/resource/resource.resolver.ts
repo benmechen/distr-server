@@ -8,6 +8,7 @@ import {
 } from '@nestjs/graphql';
 import { Auth, GQLUser } from '../../../common/decorators';
 import { Status } from '../../../generated/co/mechen/distr/common/v1';
+import { Service } from '../../../service/service.entity';
 import { User } from '../../../user/user.entity';
 import { Deployment } from '../deployment.entity';
 import { Property } from './property.type';
@@ -22,6 +23,11 @@ export class ResourceResolver {
 	@ResolveField(() => Deployment)
 	async deployment(@Parent() resource: Resource) {
 		return resource.deployment.load();
+	}
+
+	@ResolveField(() => Service)
+	async service(@Parent() resource: Resource) {
+		return resource.service.load();
 	}
 
 	@ResolveField(() => Status)

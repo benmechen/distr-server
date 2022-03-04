@@ -1,6 +1,6 @@
 import { EntityRepository } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../common/api.error';
 import { BaseService } from '../common/base/base.service';
@@ -9,6 +9,7 @@ import { Organisation } from '../organisation/organisation.entity';
 import { OrganisationService } from '../organisation/organisation.service';
 import { User } from '../user/user.entity';
 import { CreateSystemDTO } from './create/create-system.dto';
+import { DeploymentService } from './deployment/deployment.service';
 import { System } from './system.entity';
 import { UpdateSystemDTO } from './update/update-system.dto';
 
@@ -20,10 +21,12 @@ export class SystemService extends BaseService<
 > {
 	constructor(
 		@InjectRepository(System)
-		systemRepository: EntityRepository<System>,
+		private readonly systemRepository: EntityRepository<System>,
 		helperService: HelperService,
 		configService: ConfigService,
 		private readonly organisationService: OrganisationService,
+		@Inject(forwardRef(() => DeploymentService))
+		private readonly deploymentService: DeploymentService,
 	) {
 		super(
 			SystemService.name,
@@ -83,5 +86,30 @@ export class SystemService extends BaseService<
 	async hasAccess(user: User, system: System): Promise<boolean> {
 		const organisation = await system.organisation.load();
 		return this.organisationService.isMember(user, organisation);
+	}
+
+	async delete(
+		entity: string | System,
+		flush?: boolean,
+	): Promise<System | null> {
+		let system: System | null =
+			typeof entity === 'string'
+				? await this.findByIDOrFail(entity)
+				: entity;
+
+		await system.deployments.init();
+		await Promise.all(
+			system.deployments
+				.getItems()
+				.map((deployment) =>
+					this.deploymentService.delete(deployment, false),
+				),
+		);
+
+		system = await super.delete(entity, false);
+
+		if (flush) await this.systemRepository.flush();
+
+		return system;
 	}
 }

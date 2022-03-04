@@ -49,7 +49,9 @@ export class ServiceResolver extends BaseResolver({
 		return inputs.map((input) => ({
 			...input,
 			// TS cannot type Object Values
-			fields: Object.values(input.fields) as unknown as Field[],
+			fields: input.fields
+				? (Object.values(input.fields) as unknown as Field[])
+				: undefined,
 		}));
 	}
 

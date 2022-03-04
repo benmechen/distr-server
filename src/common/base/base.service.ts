@@ -162,10 +162,6 @@ export class BaseService<T extends Node, C, U>
 	 * @param entity ID as a string, or an entity object
 	 * @returns The provided entity/ID if successfull, otherwise null
 	 */
-	delete(entity: string, flush?: boolean): Promise<T | null>;
-
-	delete(entity: T, flush?: boolean): Promise<T | null>;
-
 	async delete(entity: string | T, flush = true): Promise<T | null> {
 		let _entity: T | null;
 		if (typeof entity === 'string') {

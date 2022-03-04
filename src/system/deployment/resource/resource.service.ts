@@ -1,6 +1,6 @@
 import { EntityRepository } from '@mikro-orm/mysql';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../../../common/api.error';
 import { BaseService } from '../../../common/base/base.service';
@@ -25,6 +25,7 @@ export class ResourceService extends BaseService<
 		systemRepository: EntityRepository<Resource>,
 		helperService: HelperService,
 		configService: ConfigService,
+		@Inject(forwardRef(() => DeploymentService))
 		private readonly deploymentService: DeploymentService,
 		private readonly serviceService: ServiceService,
 	) {
@@ -178,9 +179,13 @@ export class ResourceService extends BaseService<
 			service,
 			credentials,
 		);
-		await connection.delete(resource, {
-			payload: input,
-		});
+		try {
+			await connection.delete(resource, {
+				payload: input,
+			});
+		} catch (error) {
+			this.logger.warn('Failed to delete remote resource', { error });
+		}
 
 		this.repository.remove(resource);
 		if (flush) await this.repository.flush();

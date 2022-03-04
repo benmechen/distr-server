@@ -23,7 +23,7 @@ import {
 			OtherCredentials,
 		]),
 		forwardRef(() => SystemModule),
-		ResourceModule,
+		forwardRef(() => ResourceModule),
 	],
 	providers: [
 		CreateResolver,

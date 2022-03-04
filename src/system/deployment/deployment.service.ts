@@ -1,6 +1,6 @@
 import { EntityRepository, wrap } from '@mikro-orm/core';
 import { InjectRepository } from '@mikro-orm/nestjs';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../../common/api.error';
 import { BaseService } from '../../common/base/base.service';
@@ -17,6 +17,7 @@ import {
 	OtherCredentials,
 } from './credentials.input';
 import { Deployment } from './deployment.entity';
+import { ResourceService } from './resource/resource.service';
 import { UpdateDeploymentDTO } from './update/update-deployment.dto';
 
 @Injectable()
@@ -30,7 +31,10 @@ export class DeploymentService extends BaseService<
 		private readonly deploymentRepository: EntityRepository<Deployment>,
 		helperService: HelperService,
 		configService: ConfigService,
+		@Inject(forwardRef(() => SystemService))
 		private readonly systemService: SystemService,
+		@Inject(forwardRef(() => ResourceService))
+		private readonly resourceService: ResourceService,
 		private readonly cipherService: CipherService,
 	) {
 		super(
@@ -184,5 +188,30 @@ export class DeploymentService extends BaseService<
 			azure,
 			other,
 		};
+	}
+
+	async delete(
+		entity: string | Deployment,
+		flush?: boolean,
+	): Promise<Deployment | null> {
+		let deployment: Deployment | null =
+			typeof entity === 'string'
+				? await this.findByIDOrFail(entity)
+				: entity;
+
+		await deployment.resources.init();
+		await Promise.all(
+			deployment.resources
+				.getItems()
+				.map((resource) =>
+					this.resourceService.delete(resource, false),
+				),
+		);
+
+		deployment = await super.delete(entity, false);
+
+		if (flush) await this.deploymentRepository.flush();
+
+		return deployment;
 	}
 }

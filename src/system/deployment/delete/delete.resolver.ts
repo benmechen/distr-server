@@ -1,6 +1,7 @@
 import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
 import { Auth, GQLUser } from '../../../common/decorators';
 import { User } from '../../../user/user.entity';
+import { Deployment } from '../deployment.entity';
 import { DeploymentService } from '../deployment.service';
 
 @Resolver()
@@ -8,7 +9,7 @@ export class DeleteResolver {
 	constructor(private deploymentService: DeploymentService) {}
 
 	@Auth()
-	@Mutation(() => Boolean)
+	@Mutation(() => Deployment)
 	async deploymentDelete(
 		@GQLUser() user: User,
 		@Args({ type: () => ID, name: 'id' }) id: string,
@@ -18,11 +19,7 @@ export class DeleteResolver {
 			user,
 		);
 
-		try {
-			await this.deploymentService.delete(deployment);
-			return true;
-		} catch (err) {
-			return false;
-		}
+		await this.deploymentService.delete(deployment, true);
+		return deployment;
 	}
 }
