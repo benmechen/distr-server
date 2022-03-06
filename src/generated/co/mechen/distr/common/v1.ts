@@ -19,6 +19,12 @@ export enum Status {
 	UNRECOGNIZED = -1,
 }
 
+export enum UsageType {
+	LIMITED = 0,
+	UNLIMITED = 1,
+	UNRECOGNIZED = -1,
+}
+
 export interface Value {
 	stringValue: string | undefined;
 	numberValue: number | undefined;
@@ -126,6 +132,18 @@ export interface StatusRequest {
 
 export interface StatusResponse {
 	status: Status;
+}
+
+/** Usage */
+export interface UsageRequest {
+	credentials: Credentials | undefined;
+	resourceId: string;
+}
+
+export interface UsageResponse {
+	type: UsageType;
+	current?: number | undefined;
+	limit?: number | undefined;
 }
 
 /** Create */

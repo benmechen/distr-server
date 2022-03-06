@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { APIError, APIErrorCode } from '../common/api.error';
 import { BaseService } from '../common/base/base.service';
 import { HelperService } from '../common/helper/helper.service';
+import { StatusOverview } from '../common/status-overview.type';
 import { Organisation } from '../organisation/organisation.entity';
 import { OrganisationService } from '../organisation/organisation.service';
 import { User } from '../user/user.entity';
@@ -86,6 +87,42 @@ export class SystemService extends BaseService<
 	async hasAccess(user: User, system: System): Promise<boolean> {
 		const organisation = await system.organisation.load();
 		return this.organisationService.isMember(user, organisation);
+	}
+
+	/**
+	 * Get status overview of deployments in system
+	 * @param system System
+	 * @returns Status overview
+	 */
+	async getStatus(system: System): Promise<StatusOverview> {
+		if (!system.deployments)
+			return {
+				healthy: 0,
+				unhealthy: 0,
+			};
+
+		await system.deployments.init();
+
+		const statuses = await Promise.all(
+			system.deployments
+				.getItems()
+				.map(async (deployment) =>
+					this.deploymentService.getStatus(deployment),
+				),
+		);
+
+		return statuses.reduce(
+			(current, next) => {
+				return {
+					healthy: current.healthy + next.healthy,
+					unhealthy: current.unhealthy + next.unhealthy,
+				};
+			},
+			{
+				healthy: 0,
+				unhealthy: 0,
+			},
+		);
 	}
 
 	async delete(

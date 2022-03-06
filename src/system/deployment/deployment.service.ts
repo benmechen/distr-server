@@ -6,7 +6,8 @@ import { APIError, APIErrorCode } from '../../common/api.error';
 import { BaseService } from '../../common/base/base.service';
 import { CipherService } from '../../common/cipher/cipher.service';
 import { HelperService } from '../../common/helper/helper.service';
-import { Credentials } from '../../generated/co/mechen/distr/common/v1';
+import { StatusOverview } from '../../common/status-overview.type';
+import { Credentials, Status } from '../../generated/co/mechen/distr/common/v1';
 import { User } from '../../user/user.entity';
 import { System } from '../system.entity';
 import { SystemService } from '../system.service';
@@ -150,6 +151,59 @@ export class DeploymentService extends BaseService<
 	}
 
 	/**
+	 * Create a new deployment
+	 * @desciption Encrypts credentials before saving
+	 * @param input Deployment details
+	 * @param flush Persist immediately?
+	 * @returns Created deployment
+	 */
+	async update(
+		entity: Deployment,
+		{ credentials, ...input }: UpdateDeploymentDTO,
+		flush = true,
+	): Promise<Deployment> {
+		this.logger.info('update', { input });
+		let { awsCredentials } = entity;
+		let { azureCredentials } = entity;
+		let { otherCredentials } = entity;
+		if (credentials?.aws) {
+			awsCredentials = {
+				...credentials.aws,
+				secret: this.cipherService.encrypt(credentials.aws.secret),
+			};
+		}
+		if (credentials?.azure) {
+			azureCredentials = {
+				...credentials.azure,
+				secret: this.cipherService.encrypt(credentials.azure.secret),
+			};
+		}
+		if (credentials?.other) {
+			otherCredentials = { values: {} };
+			Object.entries(credentials.other.values).map(
+				async ([key, value]) => {
+					otherCredentials!.values[key] = this.cipherService.encrypt(
+						value as string,
+					);
+				},
+			);
+		}
+
+		return super.update(
+			entity,
+			{
+				...input,
+				credentials: {
+					aws: awsCredentials,
+					azure: azureCredentials,
+					other: otherCredentials,
+				},
+			},
+			flush,
+		);
+	}
+
+	/**
 	 * Get and decrypt service credentials for a deployment
 	 * @param deployment Deployment
 	 * @returns Decrypted credentials
@@ -187,6 +241,41 @@ export class DeploymentService extends BaseService<
 			aws,
 			azure,
 			other,
+		};
+	}
+
+	/**
+	 * Get status of all resources in a deployment
+	 * @param deployment Deployment
+	 * @returns Status overview
+	 */
+	async getStatus(deployment: Deployment): Promise<StatusOverview> {
+		if (!deployment.resources)
+			return {
+				healthy: 0,
+				unhealthy: 0,
+			};
+
+		await deployment.resources.init();
+		const statuses = await Promise.all(
+			deployment.resources.getItems().map((resource) =>
+				this.resourceService.getStatus(resource).catch(() => ({
+					status: Status.DOWN,
+				})),
+			),
+		);
+
+		const healthy = statuses.filter(
+			({ status }) => status === Status.HEALTHY,
+		).length;
+		const unhealthy = statuses.filter(
+			({ status }) =>
+				status === Status.DEGRADED || status === Status.DOWN,
+		).length;
+
+		return {
+			healthy,
+			unhealthy,
 		};
 	}
 

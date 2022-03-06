@@ -36,11 +36,8 @@ export class DeploymentResolver {
 	}
 
 	@ResolveField(() => StatusOverview)
-	async status(): Promise<StatusOverview> {
-		return {
-			healthy: 2,
-			unhealthy: 0,
-		};
+	async status(@Parent() deployment: Deployment): Promise<StatusOverview> {
+		return this.deploymentService.getStatus(deployment);
 	}
 
 	@Auth()

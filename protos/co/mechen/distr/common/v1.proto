@@ -107,6 +107,23 @@ message StatusResponse {
     Status status = 1;
 }
 
+// Usage
+message UsageRequest {
+    Credentials credentials = 1;
+    string resource_id = 2;
+}
+
+enum UsageType {
+    LIMITED = 0;
+    UNLIMITED = 1;
+}
+
+message UsageResponse {
+    UsageType type = 1;
+    optional double current = 2;
+    optional double limit = 3;
+}
+
 // Create
 message CreateRequest {
     Credentials credentials = 1;

@@ -1,6 +1,13 @@
-import { Parent, ResolveField, Resolver } from '@nestjs/graphql';
+import {
+	Args,
+	Parent,
+	registerEnumType,
+	ResolveField,
+	Resolver,
+} from '@nestjs/graphql';
 import { BaseResolver } from '../common/base/base.resolver';
 import { HelperService } from '../common/helper/helper.service';
+import { Method } from '../generated/co/mechen/distr/common/v1';
 import { Organisation } from '../organisation/organisation.entity';
 import { UserRole } from '../user/user.entity';
 import { CreateServiceDTO } from './create/create-service.dto';
@@ -10,6 +17,11 @@ import { Service, ServiceConnection } from './service.entity';
 import { ServiceService } from './service.service';
 import { UpdateServiceDTO } from './update/update-service.dto';
 import { ServiceUpdateInput } from './update/update.input';
+
+registerEnumType(Method, {
+	name: 'Method',
+	description: 'Service methods',
+});
 
 @Resolver(() => Service)
 export class ServiceResolver extends BaseResolver({
@@ -43,8 +55,11 @@ export class ServiceResolver extends BaseResolver({
 	}
 
 	@ResolveField(() => [Field])
-	async inputs(@Parent() parent: Service): Promise<Field[]> {
-		const inputs = await this.serviceService.getInputs(parent);
+	async inputs(
+		@Parent() parent: Service,
+		@Args({ type: () => Method, name: 'method' }) method: Method,
+	): Promise<Field[]> {
+		const inputs = await this.serviceService.getInputs(parent, method);
 
 		return inputs.map((input) => ({
 			...input,

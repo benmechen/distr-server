@@ -78,6 +78,11 @@ export class ResourceService extends BaseService<
 		);
 	}
 
+	/**
+	 * Get a resource's status from its service
+	 * @param resource Resource
+	 * @returns Status
+	 */
 	async getStatus(resource: Resource) {
 		const deployment = await resource.deployment.load();
 		const service = await resource.service.load();
@@ -89,6 +94,27 @@ export class ResourceService extends BaseService<
 		return connection.status(resource);
 	}
 
+	/**
+	 * Get usage from the resource's service
+	 * @param resource Resource
+	 * @returns Usage statistics
+	 */
+	async getUsage(resource: Resource) {
+		const deployment = await resource.deployment.load();
+		const service = await resource.service.load();
+		const credentials = this.deploymentService.getCredentials(deployment);
+		const connection = await this.serviceService.connect(
+			service,
+			credentials,
+		);
+		return connection.usage(resource);
+	}
+
+	/**
+	 * Get any details from the service about the resource
+	 * @param resource Resource
+	 * @returns Properties
+	 */
 	async getDetails(resource: Resource) {
 		const deployment = await resource.deployment.load();
 		const service = await resource.service.load();
@@ -97,8 +123,6 @@ export class ResourceService extends BaseService<
 			service,
 			credentials,
 		);
-		const status = await connection.status(resource);
-		console.log(status);
 		return connection.get(resource);
 	}
 

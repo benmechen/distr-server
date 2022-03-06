@@ -37,11 +37,8 @@ export class SystemResolver {
 	}
 
 	@ResolveField(() => StatusOverview)
-	async status(): Promise<StatusOverview> {
-		return {
-			healthy: 2,
-			unhealthy: 0,
-		};
+	async status(@Parent() system: System): Promise<StatusOverview> {
+		return this.systemService.getStatus(system);
 	}
 
 	@Auth()

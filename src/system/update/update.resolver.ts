@@ -1,6 +1,5 @@
 import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
-import { Auth, GQLUser } from '../../common/decorators';
-import { User } from '../../user/user.entity';
+import { Auth } from '../../common/decorators';
 import { System } from '../system.entity';
 import { SystemService } from '../system.service';
 import { SystemUpdateInput } from './update.input';
@@ -12,7 +11,6 @@ export class UpdateResolver {
 	@Auth()
 	@Mutation(() => System)
 	async systemUpdate(
-		@GQLUser() user: User,
 		@Args({ name: 'id', type: () => ID }) id: string,
 		@Args('input') input: SystemUpdateInput,
 	) {

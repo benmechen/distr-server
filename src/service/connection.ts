@@ -13,6 +13,8 @@ import {
 	StatusResponse,
 	UpdateRequest,
 	UpdateResponse,
+	UsageRequest,
+	UsageResponse,
 } from '../generated/co/mechen/distr/common/v1';
 import { Resource } from '../system/deployment/resource/resource.entity';
 import { Service } from './service.entity';
@@ -67,6 +69,16 @@ export class ServiceConnection implements ICommonService {
 		if (!this.credentials)
 			throw new MissingCredentialsException(this.service);
 		return status({
+			credentials: this.credentials,
+			resourceId: resource.id,
+		});
+	}
+
+	async usage(resource: Resource): Promise<UsageResponse> {
+		const usage = this.method<UsageRequest, UsageResponse>('usage');
+		if (!this.credentials)
+			throw new MissingCredentialsException(this.service);
+		return usage({
 			credentials: this.credentials,
 			resourceId: resource.id,
 		});

@@ -14,7 +14,7 @@ import { Deployment } from '../deployment.entity';
 import { Property } from './property.type';
 import { Resource } from './resource.entity';
 import { ResourceService } from './resource.service';
-import { Limit, Usage } from './usage.type';
+import { Usage } from './usage.type';
 
 @Resolver(() => Resource)
 export class ResourceResolver {
@@ -40,23 +40,21 @@ export class ResourceResolver {
 		}
 	}
 
-	@ResolveField(() => Usage)
-	async usage(): Promise<Usage> {
-		return {
-			type: Limit.LIMITED,
-			limit: 100,
-			current: Math.random() * 100,
-		};
+	@ResolveField(() => Usage, {
+		nullable: true,
+	})
+	async usage(@Parent() resource: Resource): Promise<Usage | undefined> {
+		try {
+			return this.resourceService.getUsage(resource);
+		} catch (err) {
+			return undefined;
+		}
 	}
 
 	@ResolveField(() => [Property])
 	async details(@Parent() resource: Resource): Promise<Property[]> {
-		try {
-			const details = await this.resourceService.getDetails(resource);
-			return details.properties;
-		} catch (err) {
-			return [];
-		}
+		const details = await this.resourceService.getDetails(resource);
+		return details.properties;
 	}
 
 	// Queries

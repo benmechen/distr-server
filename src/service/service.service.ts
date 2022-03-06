@@ -81,6 +81,8 @@ export class ServiceService extends BaseService<
 				filter?.query,
 			);
 
+		query.getQueryBuilder().andWhere({ blocked: false });
+
 		return query.execute(take, skip);
 	}
 
@@ -159,6 +161,11 @@ export class ServiceService extends BaseService<
 			'co.mechen.distr.common.v1.StatusRequest',
 			'co.mechen.distr.common.v1.StatusResponse',
 		);
+		const usage = this.validateMethod(
+			mainService.methods.Usage,
+			'co.mechen.distr.common.v1.UsageRequest',
+			'co.mechen.distr.common.v1.UsageResponse',
+		);
 		const create = this.validateMethod(
 			mainService.methods.Create,
 			'co.mechen.distr.common.v1.CreateRequest',
@@ -179,6 +186,7 @@ export class ServiceService extends BaseService<
 			!!reflect &&
 			!!get &&
 			!!status &&
+			!!usage &&
 			!!create &&
 			!!update &&
 			!!deleteMethod
@@ -222,12 +230,12 @@ export class ServiceService extends BaseService<
 		);
 	}
 
-	async getInputs(service: Service) {
+	async getInputs(service: Service, method: Method) {
 		const connection = await this.connect(service);
-		const create = await connection.reflect({
-			method: Method.CREATE,
+		const reflect = await connection.reflect({
+			method,
 		});
-		return create.inputs;
+		return reflect.inputs;
 	}
 
 	private validateMethod(

@@ -1,17 +1,15 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { UsageType } from '../../../generated/co/mechen/distr/common/v1';
 
-export enum Limit {
-	LIMITED = 'LIMITED',
-	UNLIMITED = 'UNLIMITED',
-}
-registerEnumType(Limit, {
-	name: 'Limit',
+registerEnumType(UsageType, {
+	name: 'UsageType',
+	description: 'Usage type',
 });
 
 @ObjectType()
 export class Usage {
-	@Field(() => Limit)
-	type: Limit;
+	@Field(() => UsageType)
+	type: UsageType;
 
 	@Field({ nullable: true })
 	current?: number;
