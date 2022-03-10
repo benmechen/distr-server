@@ -189,18 +189,19 @@ export class DeploymentService extends BaseService<
 			);
 		}
 
-		return super.update(
-			entity,
-			{
-				...input,
-				credentials: {
-					aws: awsCredentials,
-					azure: azureCredentials,
-					other: otherCredentials,
-				},
-			},
-			flush,
-		);
+		console.log(awsCredentials);
+
+		wrap(entity).assign({
+			...input,
+			awsCredentials,
+			azureCredentials,
+			otherCredentials,
+		});
+		this.repository.persist(entity);
+
+		if (flush) await this.repository.flush();
+
+		return entity;
 	}
 
 	/**

@@ -155,6 +155,7 @@ export interface CreateRequest {
 
 export interface CreateResponse {
 	status: boolean;
+	properties: Property[];
 }
 
 /** Update */
@@ -166,6 +167,7 @@ export interface UpdateRequest {
 
 export interface UpdateResponse {
 	status: boolean;
+	properties: Property[];
 }
 
 /** Delete */

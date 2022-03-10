@@ -36,7 +36,9 @@ export class Service extends Node {
 	platform: Platform = Platform.Other;
 
 	@Field(() => Boolean, { description: 'Is the service verified by Distr?' })
-	@Column()
+	@Column({
+		columnType: 'boolean',
+	})
 	verified = false;
 
 	@Column()

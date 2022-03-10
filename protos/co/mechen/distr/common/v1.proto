@@ -133,6 +133,7 @@ message CreateRequest {
 
 message CreateResponse {
     bool status = 1;
+    repeated Property properties = 2;
 }
 
 // Update
@@ -144,6 +145,7 @@ message UpdateRequest {
 
 message UpdateResponse {
     bool status = 1;
+    repeated Property properties = 2;
 }
 
 // Delete

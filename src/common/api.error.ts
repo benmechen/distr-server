@@ -90,6 +90,10 @@ export enum APIErrorCode {
 	 * The given phone number was not a valid UK phone number
 	 */
 	INVALID_PHONE = 'That is not a value phone number. Numbers must be in the form +447#########',
+	/**
+	 * The service returned a non-true status value
+	 */
+	SERVICE_CREATE_ERROR = 'Unable to create the resource due to an error with the service',
 }
 
 /**

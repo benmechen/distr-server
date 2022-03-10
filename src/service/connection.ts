@@ -17,6 +17,7 @@ import {
 	UsageResponse,
 } from '../generated/co/mechen/distr/common/v1';
 import { Resource } from '../system/deployment/resource/resource.entity';
+import { ConnectionException } from './connection.exception';
 import { Service } from './service.entity';
 import { ICommonService } from './service.interface';
 
@@ -85,7 +86,7 @@ export class ServiceConnection implements ICommonService {
 	}
 
 	async create(
-		resource: Resource,
+		resource: { id: string },
 		input: Omit<CreateRequest, 'credentials' | 'resourceId'>,
 	): Promise<CreateResponse> {
 		const create = this.method<CreateRequest, CreateResponse>('create');
@@ -131,10 +132,20 @@ export class ServiceConnection implements ICommonService {
 	private method<I, O>(name: string): (input: I) => Promise<O> {
 		return (input: I) => {
 			return new Promise((resolve, reject) => {
-				this.client[name](input, (error: Error, data: O) => {
-					if (error) return reject(error);
-					return resolve(data);
-				});
+				this.client[name](
+					input,
+					(error: grpc.ServiceError, data: O) => {
+						if (error)
+							return reject(
+								new ConnectionException(
+									error.code,
+									error.message,
+								),
+							);
+
+						return resolve(data);
+					},
+				);
 			});
 		};
 	}

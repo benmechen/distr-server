@@ -2,10 +2,11 @@ import { EntityRepository } from '@mikro-orm/mysql';
 import { InjectRepository } from '@mikro-orm/nestjs';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { v4 } from 'uuid';
 import { APIError, APIErrorCode } from '../../../common/api.error';
 import { BaseService } from '../../../common/base/base.service';
 import { HelperService } from '../../../common/helper/helper.service';
-import { Input } from '../../../generated/co/mechen/distr/common/v1';
+import { Input, Property } from '../../../generated/co/mechen/distr/common/v1';
 import { ServiceService } from '../../../service/service.service';
 import { User } from '../../../user/user.entity';
 import { Deployment } from '../deployment.entity';
@@ -137,8 +138,11 @@ export class ResourceService extends BaseService<
 		return this.deploymentService.hasAccess(user, system);
 	}
 
-	async create(input: CreateResourceDTO, flush?: boolean): Promise<Resource> {
-		const resource = await super.create(input, flush);
+	async createRemote(
+		input: CreateResourceDTO,
+		flush?: boolean,
+	): Promise<{ resource: Resource; properties: Property[] }> {
+		const id = v4();
 		const credentials = this.deploymentService.getCredentials(
 			input.deployment,
 		);
@@ -146,10 +150,25 @@ export class ResourceService extends BaseService<
 			input.service,
 			credentials,
 		);
-		await connection.create(resource, {
-			payload: input.input,
-		});
-		return resource;
+		const response = await connection.create(
+			{ id },
+			{
+				payload: input.input,
+			},
+		);
+
+		if (response.status !== true)
+			throw new APIError(APIErrorCode.SERVICE_CREATE_ERROR);
+
+		const resource = await super.create(
+			{
+				...input,
+				id,
+			},
+			flush,
+		);
+
+		return { resource, properties: response.properties };
 	}
 
 	async update(

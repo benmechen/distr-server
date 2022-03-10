@@ -3,9 +3,9 @@ import { Auth, GQLUser } from '../../../../common/decorators';
 import { ServiceService } from '../../../../service/service.service';
 import { User } from '../../../../user/user.entity';
 import { DeploymentService } from '../../deployment.service';
-import { Resource } from '../resource.entity';
 import { ResourceService } from '../resource.service';
 import { ResourceCreateInput } from './create.input';
+import { ResourceCreateResponse } from './create.response';
 
 @Resolver()
 export class CreateResolver {
@@ -16,12 +16,12 @@ export class CreateResolver {
 	) {}
 
 	@Auth()
-	@Mutation(() => Resource)
+	@Mutation(() => ResourceCreateResponse)
 	async resourceCreate(
 		@GQLUser() user: User,
 		@Args({ type: () => ID, name: 'deploymentID' }) deploymentID: string,
 		@Args('input') input: ResourceCreateInput,
-	) {
+	): Promise<ResourceCreateResponse> {
 		const deployment = await this.deploymentService.findByIDByUser(
 			deploymentID,
 			user,
@@ -31,10 +31,16 @@ export class CreateResolver {
 			input.serviceID,
 		);
 
-		return this.resourceService.create({
-			...input,
-			deployment,
-			service,
-		});
+		const { resource, properties } =
+			await this.resourceService.createRemote({
+				...input,
+				deployment,
+				service,
+			});
+
+		return {
+			resource,
+			details: properties,
+		};
 	}
 }
