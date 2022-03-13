@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { Args, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, ID, Mutation, Resolver } from '@nestjs/graphql';
 import { Logger } from 'winston';
 import { APIError, APIErrorCode } from '../../common/api.error';
 import { Auth, GQLUser } from '../../common/decorators';
@@ -28,7 +28,7 @@ export class UserUpdateResolver {
 	})
 	@Auth()
 	async userUpdate(
-		@Args('id') id: string,
+		@Args('id', { type: () => ID }) id: string,
 		@Args('input') input: UserUpdateInput,
 		@GQLUser() currentUser: User,
 		isAdmin = false,
@@ -38,17 +38,6 @@ export class UserUpdateResolver {
 
 		const user = await this.userService.findByID(id);
 		if (!user) throw new APIError(APIErrorCode.NOT_FOUND, 'user');
-
-		// Check if the current password is correct
-		if (
-			!isAdmin &&
-			input.currentPassword &&
-			!(await this.userService.verifyPassword(
-				user,
-				input.currentPassword,
-			))
-		)
-			throw new APIError(APIErrorCode.BAD_PASSWORD);
 
 		// Make sure no user already exists with the given email
 		if (

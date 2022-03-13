@@ -9,6 +9,7 @@ import { UpdateUserDTO } from './update/update-user.dto';
 import { UserUpdateInput } from './update/update.input';
 import { User, UserConnection, UserRole } from './user.entity';
 import { UserService } from './user.service';
+import { Organisation } from '../organisation/organisation.entity';
 
 @Resolver(() => User)
 export class UserResolver extends BaseResolver({
@@ -39,6 +40,11 @@ export class UserResolver extends BaseResolver({
 	@ResolveField()
 	name(@Parent() user: User): string {
 		return `${user.firstName} ${user.lastName}`;
+	}
+
+	@ResolveField(() => Organisation)
+	async organisation(@Parent() user: User) {
+		return user.organisation.load();
 	}
 
 	// Override base resolver single item query

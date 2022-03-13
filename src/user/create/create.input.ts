@@ -1,5 +1,5 @@
-import { InputType, Field, ID } from '@nestjs/graphql';
-import { IsEmail, IsOptional, IsUUID, Length } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
+import { IsEmail, Length } from 'class-validator';
 import { User } from '../user.entity';
 
 @InputType({
@@ -23,13 +23,4 @@ export class UserCreateInput implements Partial<User> {
 	@Field({ description: "User's password. Min 8 characters" })
 	@Length(8)
 	password: string;
-
-	@Field(() => ID, {
-		description:
-			'ID of organisation. Will be created automatically if not given.',
-		nullable: true,
-	})
-	@IsUUID()
-	@IsOptional()
-	organisationID?: string;
 }

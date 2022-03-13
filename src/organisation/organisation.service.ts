@@ -30,6 +30,16 @@ export class OrganisationService extends BaseService<
 	}
 
 	/**
+	 * Get all members of an organisation
+	 * @param organisation
+	 * @returns
+	 */
+	async getMembers(organisation: Organisation): Promise<User[]> {
+		await organisation.members.init();
+		return organisation.members.getItems();
+	}
+
+	/**
 	 * Add a member to an organisation
 	 * @param user User
 	 * @param organisation Organisation to add to
@@ -37,6 +47,19 @@ export class OrganisationService extends BaseService<
 	 */
 	async addMember(user: User, organisation: Organisation, flush = true) {
 		organisation.members.add(user);
+		if (flush) await this.repository.persistAndFlush(organisation);
+		return organisation;
+	}
+
+	/**
+	 * Remove member from an organisation
+	 * @param user Member
+	 * @param organisation Organisation to remove from
+	 * @returns Updated organisation
+	 */
+	async removeMember(user: User, organisation: Organisation, flush = true) {
+		await organisation.members.init();
+		organisation.members.remove(user);
 		if (flush) await this.repository.persistAndFlush(organisation);
 		return organisation;
 	}
@@ -50,5 +73,19 @@ export class OrganisationService extends BaseService<
 	async isMember(user: User, organisation: Organisation): Promise<boolean> {
 		const members = await organisation.members.init();
 		return members.contains(user);
+	}
+
+	/**
+	 * Create a default organisation for a user
+	 * @param user User
+	 * @returns Created organisation
+	 */
+	async createDefault(user: Pick<User, 'firstName'>): Promise<Organisation> {
+		return super.create(
+			{
+				name: `${user.firstName}'s Organisation`,
+			},
+			false,
+		);
 	}
 }

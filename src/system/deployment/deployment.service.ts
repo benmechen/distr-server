@@ -189,8 +189,6 @@ export class DeploymentService extends BaseService<
 			);
 		}
 
-		console.log(awsCredentials);
-
 		wrap(entity).assign({
 			...input,
 			awsCredentials,

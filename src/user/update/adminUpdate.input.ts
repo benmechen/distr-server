@@ -1,11 +1,9 @@
-import { Field, InputType, OmitType } from '@nestjs/graphql';
+import { Field, InputType } from '@nestjs/graphql';
 import { UserRole } from '../user.entity';
 import { UserUpdateInput } from './update.input';
 
 @InputType()
-export class AdminUserUpdateInput extends OmitType(UserUpdateInput, [
-	'currentPassword',
-] as const) {
+export class AdminUserUpdateInput extends UserUpdateInput {
 	@Field({ description: 'User access role', nullable: true })
 	role?: UserRole;
 

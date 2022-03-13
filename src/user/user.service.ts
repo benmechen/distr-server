@@ -97,6 +97,9 @@ export class UserService extends BaseService<
 	 * @param input UserInput object
 	 */
 	async create(input: CreateUserDTO, flush = true): Promise<User> {
+		const doesExist = await this.isEmailRegistered(input.email);
+		if (doesExist) throw new APIError(APIErrorCode.USER_EXISTS_EMAIL);
+
 		return super.create(
 			{
 				...input,
