@@ -5,17 +5,13 @@ import {
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'winston';
-import { HelperService } from '../common/helper/helper.service';
 import { LoggerFactory } from '../common/logger';
 
 @Injectable()
 export class NotificationConfig implements NotificationOptionsFactory {
 	private logger: Logger;
 
-	constructor(
-		configService: ConfigService,
-		private helperService: HelperService,
-	) {
+	constructor(configService: ConfigService) {
 		this.logger = new LoggerFactory(configService).getLogger(
 			'NotificationService',
 		);
@@ -44,28 +40,10 @@ export class NotificationConfig implements NotificationOptionsFactory {
 		return {
 			logger: this.logger,
 			email: {
-				host: this.helperService.getFromConfig<string>('SMTP_HOST'),
-				port: this.helperService.getFromConfig<number>('SMTP_PORT'),
-				from: this.helperService.getFromConfig<string>('EMAIL_FROM'),
-				user: this.helperService.getFromConfig<string>('SMTP_USER'),
-				password:
-					this.helperService.getFromConfig<string>('SMTP_PASSWORD'),
+				enabled: false,
 			},
 			sms: {
-				aws: {
-					region: this.helperService.getFromConfig<string>(
-						'AWS_REGION',
-					),
-					accessKeyId:
-						this.helperService.getFromConfig<string>(
-							'AWS_ACCESS_KEY_ID',
-						),
-					secretAccessKey: this.helperService.getFromConfig<string>(
-						'AWS_SECRET_ACCESS_KEY',
-					),
-				},
-				sender: this.helperService.getFromConfig<string>('SMS_SENDER'),
-				messageType: 'Transactional',
+				enabled: false,
 			},
 			push: {
 				enabled: false,
