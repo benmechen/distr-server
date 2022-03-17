@@ -17,6 +17,7 @@ COPY .npmrc .npmrc
 RUN npm install --production --legacy-peer-deps
 
 COPY --from=builder /usr/app/dist ./dist
+COPY --from=builder /usr/app/protos ./protos
 
 # set the NODE_ENV to be used in the API
 ENV NODE_ENV=production
