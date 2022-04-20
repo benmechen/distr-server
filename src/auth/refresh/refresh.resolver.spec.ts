@@ -82,9 +82,10 @@ describe('RefreshResolver', () => {
 		const res = await resolver.refresh('refreshToken', context as any);
 
 		expect(res).toEqual({
-			refreshToken: 'refreshToken',
+			refreshToken: 'accessToken',
 			accessToken: 'accessToken',
 			accessTokenExpiration: date,
+			role: undefined,
 		});
 		expect(authServiceVerifyTokenSpy).toHaveBeenCalledWith(
 			'refreshToken',

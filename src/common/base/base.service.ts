@@ -154,12 +154,12 @@ export class BaseService<T extends Node, C extends RequiredEntityData<T>, U>
 	async update(entity: T, input: U, flush = true): Promise<T> {
 		this.logger.info('update', { entity, input });
 
-		wrap(entity).assign(input);
-		this.repository.persist(entity);
+		const e = this.repository.assign(entity, input);
+		this.repository.persist(e);
 
 		if (flush) await this.repository.flush();
 
-		return entity;
+		return e;
 	}
 
 	/**

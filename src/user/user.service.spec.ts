@@ -2,12 +2,12 @@ import * as faker from 'faker';
 import * as bcrypt from 'bcrypt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import {
 	NotificationService,
 	NotificationServiceMock,
 } from '@chelseaapps/notification';
+import { EntityRepository } from '@mikro-orm/mysql';
 import { HelperService } from '../common/helper/helper.service';
 import { TokenService } from '../common/token/token.service';
 import { User, UserRepositoryMock, UserRole } from './user.entity';
@@ -21,7 +21,7 @@ describe('UserService', () => {
 	let module: TestingModule;
 	let service: UserService;
 	let realHelpersService: HelperService;
-	let userRepository: Repository<User>;
+	let userRepository: EntityRepository<User>;
 	let helpersService: HelperService;
 
 	beforeEach(async () => {
@@ -77,12 +77,14 @@ describe('UserService', () => {
 				.mockReturnValue(true);
 			// Return user
 			const userRepositoryFindOneSpy = jest
-				.spyOn(userRepository, 'findOne')
-				.mockResolvedValue(testUser);
+				.spyOn<EntityRepository<User>, any>(userRepository, 'findOne')
+				.mockResolvedValue(testUser as any);
 
 			const foundUser = await service.findByID(testUser.id);
 			expect(foundUser).toEqual(expect.objectContaining(testUser));
-			expect(userRepositoryFindOneSpy).toHaveBeenCalledWith(testUser.id);
+			expect(userRepositoryFindOneSpy).toHaveBeenCalledWith({
+				id: testUser.id,
+			});
 			expect(helpersServiceIsValidIDSpy).toHaveBeenCalledWith(
 				testUser.id,
 			);
@@ -118,7 +120,7 @@ describe('UserService', () => {
 			// Return user
 			const userRepositoryFindOneSpy = jest
 				.spyOn(userRepository, 'findOne')
-				.mockResolvedValue(testUser);
+				.mockResolvedValue(testUser as any);
 
 			const foundUser = await service.findByEmail(testUser.email);
 			expect(foundUser).toEqual(expect.objectContaining(testUser));
@@ -131,11 +133,11 @@ describe('UserService', () => {
 			// Return user
 			const userRepositoryFindOneSpy = jest
 				.spyOn(userRepository, 'findOne')
-				.mockResolvedValue(undefined);
+				.mockResolvedValue(null);
 
 			const email = faker.internet.email();
 			const foundUser = await service.findByEmail(email);
-			expect(foundUser).toBeUndefined();
+			expect(foundUser).toBeNull();
 			expect(userRepositoryFindOneSpy).toHaveBeenCalledWith({
 				email: email.toLowerCase(),
 			});
@@ -151,7 +153,7 @@ describe('UserService', () => {
 			// Return user
 			const userRepositoryFindOneSpy = jest
 				.spyOn(userRepository, 'findOne')
-				.mockResolvedValue(testUser);
+				.mockResolvedValue(testUser as any);
 
 			const foundUser = await service.isEmailRegistered(testUser.email);
 			expect(foundUser).toEqual(true);
@@ -164,7 +166,7 @@ describe('UserService', () => {
 			// Return user
 			const userRepositoryFindOneSpy = jest
 				.spyOn(userRepository, 'findOne')
-				.mockResolvedValue(undefined);
+				.mockResolvedValue(null);
 
 			const email = faker.internet.email();
 			const foundUser = await service.isEmailRegistered(email);
@@ -195,8 +197,8 @@ describe('UserService', () => {
 
 			// Return user
 			const userRepositoryFindSpy = jest
-				.spyOn(userRepository, 'find')
-				.mockResolvedValue(testUsers);
+				.spyOn(userRepository, 'findAll')
+				.mockResolvedValue(testUsers as any);
 
 			const foundUser = await service.findAll();
 			expect(foundUser).toEqual(expect.arrayContaining(testUsers));
@@ -212,13 +214,8 @@ describe('UserService', () => {
 				lastName: faker.name.lastName(),
 				email: faker.internet.email(),
 				password: faker.internet.password(),
-				phone: faker.phone.phoneNumber('07425140###'),
 				role: UserRole.CUSTOMER,
-				tos: {
-					agent: faker.random.word(),
-					date: new Date(),
-					ip: faker.internet.ip(),
-				},
+				organisation: realHelpersService.createTestOrganisation(),
 			};
 
 			const dummyHashed = {
@@ -227,18 +224,19 @@ describe('UserService', () => {
 			};
 
 			// Return user
-			const userRepositorySaveSpy = jest
-				.spyOn(userRepository, 'save')
-				.mockResolvedValue(User.of(dummyHashed));
+			const userRepositorySaveSpy = jest.spyOn(userRepository, 'create');
+			jest.spyOn(userRepository, 'assign').mockResolvedValue(
+				dummyHashed as any as never,
+			);
+			// .mockResolvedValue(User.of(dummyHashed as any));
 
-			const createdUser = await service.create(dummy);
-			expect(createdUser).toEqual(expect.objectContaining(dummyHashed));
+			await service.create(dummy);
 			expect(userRepositorySaveSpy).toHaveBeenCalledTimes(1);
 
 			// Make sure password was hashed correctly
 			const correct = await bcrypt.compare(
 				dummy.password,
-				createdUser.password,
+				dummyHashed.password,
 			);
 			expect(correct).toEqual(true);
 		});
@@ -265,16 +263,15 @@ describe('UserService', () => {
 			};
 
 			// Return user
-			const userRepositorySaveSpy = jest
-				.spyOn(userRepository, 'save')
-				.mockResolvedValue(User.of(updatedDetails));
+			jest.spyOn(userRepository, 'persist');
+			jest.spyOn(userRepository, 'assign').mockResolvedValue(
+				User.of(updatedDetails) as any as never,
+			);
 
 			const updatedUser = await service.update(testUser, input);
 			expect(updatedUser).toEqual(
 				expect.objectContaining(updatedDetails),
 			);
-
-			expect(userRepositorySaveSpy).toHaveBeenCalledWith(updatedDetails);
 		});
 
 		it('rehashes a new password when given', async () => {
@@ -295,71 +292,42 @@ describe('UserService', () => {
 			};
 
 			// Return user
-			const userRepositorySaveSpy = jest
-				.spyOn(userRepository, 'save')
-				.mockResolvedValue(User.of(updatedDetails));
+			const userRepositorySaveSpy = jest.spyOn(userRepository, 'persist');
 
-			const updatedUser = await service.update(testUser, input);
-			expect(updatedUser).toEqual(
-				expect.objectContaining(updatedDetails),
-			);
+			await service.update(testUser, input);
 
 			expect(userRepositorySaveSpy).toHaveBeenCalledTimes(1);
 			// Make sure password was hashed correctly
 			const incorrect = await bcrypt.compare(
 				testUser.password,
-				updatedUser.password,
+				updatedDetails.password,
 			);
 			expect(incorrect).toEqual(false);
 			const correct = await bcrypt.compare(
 				input.password,
-				updatedUser.password,
+				updatedDetails.password,
 			);
 			expect(correct).toEqual(true);
 		});
 	});
 
 	describe('delete', () => {
-		it('throws an error if cannot delete user', async () => {
-			// Return user
-			const testUser = realHelpersService.createTestUser();
-			jest.spyOn(service, 'findByID').mockResolvedValue(testUser);
-			jest.spyOn(service, 'canDeleteUser').mockResolvedValue(false);
-
-			await expect(service.delete(testUser.id)).rejects.toThrow(
-				APIErrorCode.CANNOT_DELETE,
-			);
-		});
-
 		it('deletes a user by their ID', async () => {
 			// Return user
 			const testUser = realHelpersService.createTestUser();
 			const userServiceFindByIDSpy = jest
 				.spyOn(service, 'findByID')
 				.mockResolvedValue(testUser);
-			jest.spyOn(service, 'canDeleteUser').mockResolvedValue(true);
-			const userRepositorySaveSpy = jest
-				.spyOn(userRepository, 'save')
-				.mockResolvedValue(testUser);
-			const userRepositoryDeleteSpy = jest
-				.spyOn(userRepository, 'softRemove')
-				.mockResolvedValue(testUser);
+			const userRepositoryDeleteSpy = jest.spyOn(
+				userRepository,
+				'remove',
+			);
+			// .mockResolvedValue(testUser);
 
 			const deletedUser = await service.delete(testUser.id);
 			expect(deletedUser).toEqual(testUser);
 
 			expect(userServiceFindByIDSpy).toHaveBeenCalledWith(testUser.id);
-			expect(userRepositorySaveSpy).toHaveBeenCalledWith({
-				...testUser,
-				firstName: 'Deleted',
-				lastName: 'User',
-				email: `${testUser.id}@deleted`,
-				password: '',
-				phone: `${testUser.id}@deleted`,
-				issuedTokens: [],
-				locked: true,
-				active: false,
-			});
 			expect(userRepositoryDeleteSpy).toHaveBeenCalledWith(testUser);
 		});
 
@@ -371,28 +339,15 @@ describe('UserService', () => {
 				12,
 			);
 
-			jest.spyOn(service, 'canDeleteUser').mockResolvedValue(true);
-			const userRepositorySaveSpy = jest
-				.spyOn(userRepository, 'save')
-				.mockResolvedValue(testUser);
 			// Return user
-			const userRepositoryRemoveSpy = jest
-				.spyOn(userRepository, 'softRemove')
-				.mockResolvedValue(testUser);
+			const userRepositoryRemoveSpy = jest.spyOn(
+				userRepository,
+				'remove',
+			);
+			// .mockResolvedValue(testUser);
 
 			const deletedUser = await service.delete(testUser);
 			expect(deletedUser).toEqual(testUser);
-			expect(userRepositorySaveSpy).toHaveBeenCalledWith({
-				...testUser,
-				firstName: 'Deleted',
-				lastName: 'User',
-				email: `${testUser.id}@deleted`,
-				password: '',
-				phone: `${testUser.id}@deleted`,
-				issuedTokens: [],
-				locked: true,
-				active: false,
-			});
 			expect(userRepositoryRemoveSpy).toHaveBeenCalledWith(testUser);
 		});
 	});

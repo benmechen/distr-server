@@ -76,7 +76,7 @@ describe('CodeService', () => {
 
 			const serviceFindByIDSpy = jest
 				.spyOn(service, 'findByCode')
-				.mockImplementation(async () => undefined);
+				.mockImplementation(async () => null);
 
 			await expect(service.verify(code)).rejects.toThrow();
 
@@ -84,7 +84,7 @@ describe('CodeService', () => {
 		});
 
 		it('throws an error and deletes code if expired', async () => {
-			const code = Code.of({
+			const code = (Code as any).of({
 				code: faker.random.word(),
 				created: faker.date.past(1),
 			});
@@ -94,7 +94,7 @@ describe('CodeService', () => {
 			);
 			const serviceDeleteSpy = jest
 				.spyOn(service, 'delete')
-				.mockImplementation(async () => code);
+				.mockImplementation(async () => null);
 
 			await expect(service.verify(code.code)).rejects.toThrow();
 
@@ -102,7 +102,7 @@ describe('CodeService', () => {
 		});
 
 		it('generates a token if code valid', async () => {
-			const code = Code.of({
+			const code = (Code as any).of({
 				code: faker.random.word(),
 				identifier: faker.phone.phoneNumber(),
 				created: new Date(),
@@ -113,7 +113,7 @@ describe('CodeService', () => {
 			);
 			const serviceDeleteSpy = jest
 				.spyOn(service, 'delete')
-				.mockImplementation(async () => code);
+				.mockImplementation(async () => null);
 			const tokenServiceSignSpy = jest
 				.spyOn(tokenService, 'sign')
 				.mockReturnValue('token');

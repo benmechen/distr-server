@@ -112,9 +112,15 @@ export class UserRepositoryMock {
 	async findOne(): Promise<void> {}
 	async find(): Promise<void> {}
 	async findAndCount(): Promise<void> {}
+	async findAll(): Promise<void> {}
+	async create(): Promise<void> {}
 	async save(): Promise<void> {}
 	async delete(): Promise<void> {}
 	async remove(): Promise<void> {}
 	async softRemove(): Promise<void> {}
+	async flush(): Promise<void> {}
+	async persist(): Promise<void> {}
+	async persistAndFlush(): Promise<void> {}
+	async assign(): Promise<void> {}
 }
 /* eslint-enable */

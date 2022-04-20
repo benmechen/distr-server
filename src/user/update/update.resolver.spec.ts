@@ -89,9 +89,6 @@ describe('UpdateResolver', () => {
 
 		jest.spyOn(userService, 'canModifyUser').mockReturnValue(true);
 		jest.spyOn(userService, 'findByID').mockResolvedValue(testUser);
-		const userServiceVerifyPasswordSpy = jest
-			.spyOn(userService, 'verifyPassword')
-			.mockResolvedValue(true);
 		const userServiceUpdateSpy = jest
 			.spyOn(userService, 'update')
 			.mockResolvedValue(updatedUser);
@@ -99,10 +96,6 @@ describe('UpdateResolver', () => {
 		const res = await resolver.userUpdate(testUser.id, input, testUser);
 		expect(res).toEqual(updatedUser);
 
-		expect(userServiceVerifyPasswordSpy).toHaveBeenCalledWith(
-			testUser,
-			input.currentPassword,
-		);
 		expect(userServiceUpdateSpy).toHaveBeenCalledWith(testUser, input);
 	});
 
@@ -121,9 +114,6 @@ describe('UpdateResolver', () => {
 
 		jest.spyOn(userService, 'canModifyUser').mockReturnValue(true);
 		jest.spyOn(userService, 'findByID').mockResolvedValue(testUser);
-		const userServiceVerifyPasswordSpy = jest
-			.spyOn(userService, 'verifyPassword')
-			.mockResolvedValue(true);
 		const userServiceUpdateSpy = jest
 			.spyOn(userService, 'update')
 			.mockResolvedValue(updatedUser);
@@ -131,28 +121,7 @@ describe('UpdateResolver', () => {
 		const res = await resolver.userUpdate(testUser.id, input, testUser);
 		expect(res).toEqual(updatedUser);
 
-		expect(userServiceVerifyPasswordSpy).toHaveBeenCalledWith(
-			testUser,
-			input.currentPassword,
-		);
 		expect(userServiceUpdateSpy).toHaveBeenCalledWith(testUser, input);
-	});
-
-	it('throws an error if current password is incorrect', async () => {
-		const testUser = helpersService.createTestUser();
-
-		const input = {
-			password: faker.internet.password(),
-			currentPassword: faker.internet.password(),
-		};
-
-		jest.spyOn(userService, 'canModifyUser').mockReturnValue(true);
-		jest.spyOn(userService, 'findByID').mockResolvedValue(testUser);
-		jest.spyOn(userService, 'verifyPassword').mockResolvedValue(false);
-
-		await expect(async () =>
-			resolver.userUpdate(testUser.id, input, testUser),
-		).rejects.toThrow(APIErrorCode.BAD_PASSWORD);
 	});
 
 	it('throws an error if new email is already registered', async () => {

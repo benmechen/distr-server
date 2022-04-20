@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { EntityRepository } from '@mikro-orm/mysql';
 import { Token, TokenRepositoryMock } from './token.entity';
 import { TokenService } from './token.service';
 import { HelperService } from '../helper/helper.service';
@@ -19,7 +19,7 @@ describe('TokenService', () => {
 	let module: TestingModule;
 	let service: TokenService;
 	let jwtService: JwtService;
-	let tokenRepository: Repository<Token>;
+	let tokenRepository: EntityRepository<Token>;
 	let helpersService: HelperService;
 	const publicKey = 'publicKey';
 	const privateKey = 'privateKey';
@@ -122,9 +122,7 @@ describe('TokenService', () => {
 			const tokens = await service.getTokensForUser(testUser.id);
 			expect(tokens[0]).toEqual(token);
 			expect(tokenRepositoryFindSpy).toHaveBeenCalledWith({
-				where: {
-					user: testUser.id,
-				},
+				user: testUser.id,
 			});
 		});
 
@@ -136,9 +134,7 @@ describe('TokenService', () => {
 			const tokens = await service.getTokensForUser(id);
 			expect(tokens).toEqual([]);
 			expect(tokenRepositoryFindSpy).toHaveBeenCalledWith({
-				where: {
-					user: id,
-				},
+				user: id,
 			});
 		});
 	});
@@ -147,7 +143,7 @@ describe('TokenService', () => {
 		it('calls delete for a token', async () => {
 			const tokenRepositoryDeleteSpy = jest.spyOn(
 				tokenRepository,
-				'delete',
+				'removeAndFlush',
 			);
 			await service.delete('token');
 			expect(tokenRepositoryDeleteSpy).toHaveBeenCalledWith({

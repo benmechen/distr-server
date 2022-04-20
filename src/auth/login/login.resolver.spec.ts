@@ -80,7 +80,7 @@ describe('LoginResolver', () => {
 
 		const res = await resolver.login(
 			testUser.email,
-			testUser.phone,
+			testUser.email,
 			testUser.password,
 			context as any,
 		);
@@ -91,7 +91,7 @@ describe('LoginResolver', () => {
 		});
 
 		expect(userServicefindByEmailOrPhoneSpy).toHaveBeenCalledWith(
-			testUser.phone,
+			testUser.email,
 		);
 		expect(userServiceisUserLockedSpy).toHaveBeenCalledWith(testUser);
 		expect(userServiceVerifyPasswordSpy).toHaveBeenCalledWith(
@@ -113,9 +113,7 @@ describe('LoginResolver', () => {
 	});
 
 	it('returns null if user not found', async () => {
-		jest.spyOn(userService, 'findByEmailOrPhone').mockResolvedValue(
-			undefined,
-		);
+		jest.spyOn(userService, 'findByEmailOrPhone').mockResolvedValue(null);
 
 		const res = await resolver.login('', '', '', context as any);
 		expect(res).toEqual(null);

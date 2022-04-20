@@ -73,9 +73,7 @@ describe('AuthService', () => {
 
 		it('retuns null for an invalid ID', async () => {
 			// Return null
-			const userServiceFindByIDSpy = jest
-				.spyOn(userService, 'findByID')
-				.mockResolvedValue(undefined);
+			const userServiceFindByIDSpy = jest.spyOn(userService, 'findByID');
 
 			const id = faker.datatype.uuid();
 			const validatedUser = await service.validateUser(id);
@@ -191,13 +189,19 @@ describe('AuthService', () => {
 	describe('saveToken', () => {
 		it("adds a token to a user's issued list", async () => {
 			const testUser = helpersService.createTestUser();
-			const tokenServiceSaveSpy = jest.spyOn(tokenService, 'save');
-			await service.saveToken(testUser, 'token');
 			const issuedToken = Token.of({
 				token: 'token',
 				user: testUser,
 			});
-			expect(tokenServiceSaveSpy).toHaveBeenCalledWith(issuedToken);
+			const tokenServiceSaveSpy = jest
+				.spyOn(tokenService, 'save')
+				.mockResolvedValue(issuedToken);
+			await service.saveToken(testUser, 'token');
+
+			expect(tokenServiceSaveSpy).toHaveBeenCalledWith({
+				...issuedToken,
+				id: expect.anything(),
+			});
 		});
 	});
 

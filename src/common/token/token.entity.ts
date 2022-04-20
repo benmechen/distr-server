@@ -16,5 +16,6 @@ export class Token extends Node {
 export class TokenRepositoryMock {
 	async find(): Promise<void> {}
 	async delete(): Promise<void> {}
+	async removeAndFlush(): Promise<void> {}
 }
 /* eslint-enable */

@@ -4,10 +4,10 @@ import * as fs from 'fs';
 import * as faker from 'faker';
 import { ConfigService } from '@nestjs/config';
 import { User } from '../../user/user.entity';
-import { Article } from '../../article/article.entity';
 import { ConnectionSort } from '../base/connection.sort';
 import { ConnectionFilter } from '../base/connection.filter';
 import { ConfigException } from './config.exception';
+import { Organisation } from '../../organisation/organisation.entity';
 
 interface IInsertMock {
 	into: IInsertMock;
@@ -249,23 +249,18 @@ export class HelperService {
 		});
 	}
 
+	createTestOrganisation() {
+		return Organisation.of({
+			name: faker.company.companyName(),
+		});
+	}
+
 	createTestClient() {
 		return {
 			ip: faker.internet.ip(),
 			date: new Date(),
 			agent: faker.internet.userAgent(),
 		};
-	}
-
-	createTestArticle() {
-		return Article.of({
-			id: faker.datatype.uuid(),
-			title: faker.lorem.lines(1),
-			image: faker.internet.url(),
-			teaser: faker.lorem.sentence(),
-			publisher: faker.name.firstName(),
-			body: faker.lorem.paragraph(),
-		});
 	}
 
 	mockConnection(): {

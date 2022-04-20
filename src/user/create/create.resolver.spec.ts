@@ -1,4 +1,3 @@
-import * as faker from 'faker';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user.service';
@@ -14,6 +13,8 @@ import { UserServiceMock } from '../user.service.mock';
 import { HelpersServiceMock } from '../../common/helper/helper.service.mock';
 import { CodeService } from '../../auth/code/code.service';
 import { CodeServiceMock } from '../../auth/code/code.service.mock';
+import { OrganisationService } from '../../organisation/organisation.service';
+import { OrganisationServiceMock } from '../../organisation/organisation.service.mock';
 
 describe('CreateResolver', () => {
 	let module: TestingModule;
@@ -21,7 +22,6 @@ describe('CreateResolver', () => {
 	let userService: UserService;
 	let authService: AuthService;
 	let helpersService: HelperService;
-	let testClient: { ip: string; agent: string; date: Date };
 
 	beforeEach(async () => {
 		module = await Test.createTestingModule({
@@ -43,6 +43,10 @@ describe('CreateResolver', () => {
 					provide: CodeService,
 					useClass: CodeServiceMock,
 				},
+				{
+					provide: OrganisationService,
+					useClass: OrganisationServiceMock,
+				},
 				ConfigService,
 			],
 		}).compile();
@@ -52,7 +56,6 @@ describe('CreateResolver', () => {
 
 		authService = module.get(AuthService);
 		helpersService = new HelperService();
-		testClient = helpersService.createTestClient();
 	});
 
 	afterEach(async () => {
@@ -68,12 +71,10 @@ describe('CreateResolver', () => {
 		const testUser = helpersService.createTestUser();
 
 		const input = new UserCreateInput();
-		input.tos = true;
 		input.firstName = testUser.firstName;
 		input.lastName = testUser.lastName;
 		input.email = testUser.email;
 		input.password = testUser.password;
-		input.phone = faker.phone.phoneNumber('074########');
 
 		const date = new Date();
 
@@ -96,7 +97,7 @@ describe('CreateResolver', () => {
 			refreshToken: date,
 		});
 
-		const user = await resolver.userCreate(input, testClient);
+		const user = await resolver.userCreate(input);
 		expect(user).toEqual(expect.objectContaining(testUser));
 		expect(user.tokens).toEqual({
 			accessToken: 'token',
@@ -108,21 +109,16 @@ describe('CreateResolver', () => {
 			testUser.email,
 		);
 
-		const tosCall = userServiceCreateSpy.mock.calls[0][0].tos;
-
 		userServiceCreateSpy.mock.calls[0][0] = {
 			...userServiceCreateSpy.mock.calls[0][0],
-			tos: {
-				date: testClient.date,
-				agent: tosCall.agent,
-				ip: tosCall.ip,
-			},
 		};
-		expect(userServiceCreateSpy).toHaveBeenCalledWith({
-			...input,
-			role: 'CUSTOMER',
-			tos: testClient,
-		});
+		expect(userServiceCreateSpy).toHaveBeenCalledWith(
+			{
+				...input,
+				role: 'CUSTOMER',
+			},
+			false,
+		);
 		expect(userServiceSendWelcomeEmailSpy).toHaveBeenCalled();
 		expect(authServiceCreateTokenSpy).toHaveBeenNthCalledWith(
 			1,
@@ -142,35 +138,16 @@ describe('CreateResolver', () => {
 		const testUser = helpersService.createTestUser();
 
 		const input = new UserCreateInput();
-		input.tos = true;
 		input.firstName = testUser.firstName;
 		input.lastName = testUser.lastName;
 		input.email = testUser.email;
 		input.password = testUser.password;
-		input.phone = faker.phone.phoneNumber('074########');
 
 		jest.spyOn(userService, 'isEmailRegistered').mockResolvedValue(true);
 
-		await expect(async () =>
-			resolver.userCreate(input, testClient),
-		).rejects.toThrow(APIErrorCode.USER_EXISTS_EMAIL);
-	});
-
-	it('throws an error if user does not accept terms of service', async () => {
-		// Create dummy user
-		const testUser = helpersService.createTestUser();
-
-		const input = new UserCreateInput();
-		input.tos = false;
-		input.firstName = testUser.firstName;
-		input.lastName = testUser.lastName;
-		input.email = testUser.email;
-		input.password = testUser.password;
-		input.phone = faker.phone.phoneNumber('074########');
-
-		await expect(async () =>
-			resolver.userCreate(input, testClient),
-		).rejects.toThrow(APIErrorCode.TERMS_OF_SERVICE);
+		await expect(async () => resolver.userCreate(input)).rejects.toThrow(
+			APIErrorCode.USER_EXISTS_EMAIL,
+		);
 	});
 
 	it('calls the main user create as an admin', async () => {
@@ -178,12 +155,10 @@ describe('CreateResolver', () => {
 		const testUser = helpersService.createTestUser();
 
 		const input = new AdminUserCreateInput();
-		input.tos = true;
 		input.firstName = testUser.firstName;
 		input.lastName = testUser.lastName;
 		input.email = testUser.email;
 		input.password = testUser.password;
-		input.phone = faker.phone.phoneNumber('074########');
 		input.role = UserRole.CUSTOMER;
 
 		const userServiceCanUserSetRoleSpy = jest
@@ -194,7 +169,7 @@ describe('CreateResolver', () => {
 			.mockResolvedValue({} as any);
 
 		const adminUser = helpersService.createTestUser();
-		await resolver.adminUserCreate(input, testClient, adminUser);
+		await resolver.adminUserCreate(input, adminUser);
 
 		expect(userServiceCanUserSetRoleSpy).toHaveBeenCalledWith(
 			adminUser,
@@ -202,7 +177,6 @@ describe('CreateResolver', () => {
 		);
 		expect(userResolverCreateMockSpy).toHaveBeenCalledWith(
 			input,
-			testClient,
 			input.role,
 		);
 	});
@@ -212,12 +186,10 @@ describe('CreateResolver', () => {
 		const testUser = helpersService.createTestUser();
 
 		const input = new AdminUserCreateInput();
-		input.tos = true;
 		input.firstName = testUser.firstName;
 		input.lastName = testUser.lastName;
 		input.email = testUser.email;
 		input.password = testUser.password;
-		input.phone = faker.phone.phoneNumber('074########');
 		input.role = UserRole.CUSTOMER;
 
 		const userServiceCanUserSetRoleSpy = jest
@@ -226,7 +198,7 @@ describe('CreateResolver', () => {
 
 		const adminUser = helpersService.createTestUser();
 		await expect(async () =>
-			resolver.adminUserCreate(input, testClient, adminUser),
+			resolver.adminUserCreate(input, adminUser),
 		).rejects.toThrow(APIErrorCode.UNAUTHORISED);
 
 		expect(userServiceCanUserSetRoleSpy).toHaveBeenCalledWith(

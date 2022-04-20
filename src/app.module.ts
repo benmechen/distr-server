@@ -12,7 +12,6 @@ import { UserModule } from './user/user.module';
 import { GqlConfigService } from './apollo.config';
 import { StatusController } from './status/status.controller';
 import { AuthModule } from './auth/auth.module';
-import { ArticleModule } from './article/article.module';
 import { DBConfig } from './db.config';
 import { GlobalModule } from './global.module';
 import { CommonModule } from './common/common.module';
@@ -75,7 +74,6 @@ import { ServiceModule } from './service/service.module';
 		TerminusModule,
 		UserModule,
 		AuthModule,
-		ArticleModule,
 		CommonModule,
 		OrganisationModule,
 		SystemModule,

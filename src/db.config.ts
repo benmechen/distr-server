@@ -8,7 +8,6 @@ import { Injectable } from '@nestjs/common';
 import { User } from './user/user.entity';
 import { Code } from './auth/code/code.entity';
 import { Token } from './common/token/token.entity';
-import { Article } from './article/article.entity';
 import { Organisation } from './organisation/organisation.entity';
 import { System } from './system/system.entity';
 import { Deployment } from './system/deployment/deployment.entity';
@@ -42,7 +41,6 @@ export class DBConfig implements MikroOrmOptionsFactory<MySqlDriver> {
 				User,
 				Code,
 				Token,
-				Article,
 				Organisation,
 				System,
 				Deployment,
