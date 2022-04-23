@@ -24,7 +24,7 @@
 		"test:watch": "jest --watch",
 		"test:cov": "jest --coverage",
 		"test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-		"test:e2e:docker": "npm run start:dependencies && DB_HOST=localhost DB_USER=postgres DB_PASSWORD=postgres REDIS_PORT=7000 npm run test:e2e && npm run stop:dependencies",
+		"test:e2e:docker": "npm run start:dependencies && DB_HOST=localhost DB_USER=postgres DB_PASSWORD=postgres REDIS_PORT=7001 npm run test:e2e && npm run stop:dependencies",
 		"start:dependencies": "docker-compose -f docker-compose.e2e.yml up -d --remove-orphans --build",
 		"stop:dependencies": "docker-compose -f docker-compose.e2e.yml down",
 		"test:e2e": "cross-env NODE_ENV=test jest --config ./test/jest-e2e.json --runInBand --detectOpenHandles --forceExit",
@@ -127,6 +127,7 @@
 		"eslint-plugin-prettier": "^3.1.4",
 		"husky": "^4.3.8",
 		"jest": "^26.6.3",
+		"jest-html-reporter": "^3.4.2",
 		"lint-staged": "^10.5.1",
 		"prettier": "^2.3.0",
 		"standard-version": "^9.3.0",
@@ -170,7 +171,8 @@
 	"lint-staged": {
 		"src/**/*.ts": [
 			"npm run format",
-			"npm run lint"
+			"npm run lint",
+			"npm run test"
 		]
 	},
 	"mikro-orm": {
